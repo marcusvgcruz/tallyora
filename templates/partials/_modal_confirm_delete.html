@@ -1,0 +1,63 @@
+{% comment %}
+==========================================================================
+partials/_modal_confirm_delete.html — confirmação de exclusão (HTML/CSS puro).
+
+   Interface de contexto:
+     title        (str, obrigatório)  Título do modal, em pt-BR.
+     description  (str, obrigatório)  Consequência da exclusão.
+     action_url   (str, obrigatório)  URL da DeleteView; o modal envia POST com csrf.
+     cancel_url   (str, obrigatório)  URL de retorno ao cancelar.
+
+   Abertura sem JavaScript: o overlay só aparece quando a URL contém o hash
+   #confirmar-exclusao. O gatilho é um link comum:
+     <a href="#confirmar-exclusao">Excluir</a>
+   Como o id é fixo, use um modal por página (uma exclusão por tela).
+
+   Uso:
+     {% include 'partials/_modal_confirm_delete.html' with title='Excluir caixinha' description='Os aportes registrados nesta caixinha também serão removidos.' action_url=object.get_delete_url cancel_url=object.get_absolute_url %}
+   ==========================================================================
+{% endcomment %}
+<style>
+  .confirm-modal { display: none; }
+  .confirm-modal:target { display: flex; }
+</style>
+
+<div id="confirmar-exclusao"
+     class="confirm-modal fixed inset-0 z-50 items-center justify-center p-4"
+     role="dialog" aria-modal="true" aria-labelledby="confirmar-exclusao-titulo" aria-describedby="confirmar-exclusao-descricao">
+
+  <a href="{{ cancel_url|default:'#' }}"
+     class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+     aria-label="Fechar confirmação de exclusão"></a>
+
+  <div class="relative w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+    <div class="flex items-start gap-4">
+      <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"></path>
+          <path d="M8 6V4h8v2"></path>
+          <path d="M19 6l-1 14H6L5 6"></path>
+          <path d="M10 11v5M14 11v5"></path>
+        </svg>
+      </span>
+      <div class="min-w-0">
+        <h2 id="confirmar-exclusao-titulo" class="text-base font-semibold text-slate-100">{{ title }}</h2>
+        <p id="confirmar-exclusao-descricao" class="mt-2 text-sm text-slate-400">{{ description }}</p>
+      </div>
+    </div>
+
+    <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      <a href="{{ cancel_url|default:'#' }}"
+         class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700">
+        Cancelar
+      </a>
+      <form method="post" action="{{ action_url }}" class="inline-flex">
+        {% csrf_token %}
+        <button type="submit"
+                class="inline-flex w-full items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-sm font-medium text-rose-400 transition-colors hover:bg-rose-500/20 sm:w-auto">
+          Excluir
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

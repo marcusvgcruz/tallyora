@@ -1,0 +1,101 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Entrar — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="mx-auto w-full max-w-md">
+
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md sm:p-8">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">Entrar</h1>
+      <p class="mt-2 text-sm text-slate-400">Acesse o seu painel financeiro com e-mail e senha.</p>
+
+      {% if form.non_field_errors %}
+        <div class="mt-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'users:login' %}" class="mt-6 space-y-5" novalidate>
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        {# O formulário de login usa o campo `username` (EmailField) como identificador de e-mail. #}
+        {% if form.username %}
+          <div>
+            <label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">E-mail</label>
+            <input type="email" name="username" id="{{ form.username.id_for_label }}"
+                   value="{{ form.username.value|default:'' }}"
+                   autocomplete="email" inputmode="email" tabindex="1" required
+                   placeholder="voce@exemplo.com.br"
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.username.errors %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
+            {% if form.username.errors %}
+              <div id="erro-email">
+                {% for error in form.username.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% elif form.email %}
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">E-mail</label>
+            <input type="email" name="email" id="{{ form.email.id_for_label }}"
+                   value="{{ form.email.value|default:'' }}"
+                   autocomplete="email" inputmode="email" tabindex="1" required
+                   placeholder="voce@exemplo.com.br"
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.email.errors %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
+            {% if form.email.errors %}
+              <div id="erro-email">
+                {% for error in form.email.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if form.password %}
+          <div>
+            <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">Senha</label>
+            <input type="password" name="password" id="{{ form.password.id_for_label }}"
+                   autocomplete="current-password" tabindex="2" required
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.password.errors %}aria-invalid="true" aria-describedby="erro-password"{% endif %}>
+            {% if form.password.errors %}
+              <div id="erro-password">
+                {% for error in form.password.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {# Campos extras eventualmente declarados no formulário, sem duplicar os acima. #}
+        {% for field in form %}
+          {% if field.name != 'username' and field.name != 'email' and field.name != 'password' %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">
+                {{ field.label }}{% if field.field.required %} <span class="text-rose-400" aria-hidden="true">*</span>{% endif %}
+              </label>
+              {{ field }}
+              {% for error in field.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <button type="submit" tabindex="3"
+                class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300">
+          Entrar
+        </button>
+      </form>
+
+      <p class="mt-6 border-t border-slate-800 pt-5 text-center text-sm text-slate-400">
+        Ainda não tem conta?
+        <a href="{% url 'users:register' %}" class="font-semibold text-emerald-400 transition-colors hover:text-emerald-300">Cadastre-se</a>
+      </p>
+    </div>
+
+    <p class="mt-4 text-center text-xs text-slate-500">
+      O acesso é feito exclusivamente por e-mail e senha.
+    </p>
+  </div>
+{% endblock %}

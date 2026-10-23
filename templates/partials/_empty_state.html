@@ -1,0 +1,33 @@
+{% comment %}
+==========================================================================
+partials/_empty_state.html — estado vazio com ação sugerida.
+
+   Interface de contexto:
+     title         (str, obrigatório)  Título do estado vazio, em pt-BR.
+     description   (str, obrigatório)  Explicação do porquê está vazio.
+     action_url    (str, opcional)     URL de destino da ação sugerida.
+     action_label  (str, opcional)     Texto do botão; só aparece com action_url.
+
+   Uso:
+     {% include 'partials/_empty_state.html' with title='Nenhuma caixinha criada' description='Crie sua primeira caixinha para separar dinheiro por objetivo.' action_url=create_url action_label='Criar caixinha' %}
+   ==========================================================================
+{% endcomment %}
+<div class="rounded-2xl border border-dashed border-slate-800 bg-slate-900/50 px-6 py-12 text-center backdrop-blur-md">
+  <span class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-800/60 text-slate-500">
+    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 7h13a2 2 0 012 2v8a2 2 0 01-2 2H3z"></path>
+      <path d="M18 10h3v6h-3"></path>
+      <circle cx="7" cy="13" r="1.5"></circle>
+    </svg>
+  </span>
+
+  <h3 class="text-base font-semibold text-slate-100">{{ title }}</h3>
+  <p class="mx-auto mt-2 max-w-md text-sm text-slate-400">{{ description }}</p>
+
+  {% if action_url and action_label %}
+    <a href="{{ action_url }}"
+       class="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300">
+      {{ action_label }}
+    </a>
+  {% endif %}
+</div>

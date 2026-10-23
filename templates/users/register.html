@@ -1,0 +1,136 @@
+{% extends 'base_public.html' %}
+
+{% block title %}Criar conta — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="mx-auto w-full max-w-md">
+
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md sm:p-8">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">Criar conta</h1>
+      <p class="mt-2 text-sm text-slate-400">Comece a organizar seu fluxo de caixa em poucos minutos.</p>
+
+      {% if form.non_field_errors %}
+        <div class="mt-6 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-400">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'users:register' %}" class="mt-6 space-y-5" novalidate>
+        {% csrf_token %}
+
+        {% if form.first_name or form.last_name %}
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {% if form.first_name %}
+              <div>
+                <label for="{{ form.first_name.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">Nome</label>
+                <input type="text" name="first_name" id="{{ form.first_name.id_for_label }}"
+                       value="{{ form.first_name.value|default:'' }}"
+                       autocomplete="given-name" tabindex="1" required
+                       class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                       {% if form.first_name.errors %}aria-invalid="true" aria-describedby="erro-first_name"{% endif %}>
+                {% if form.first_name.errors %}
+                  <div id="erro-first_name">
+                    {% for error in form.first_name.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+
+            {% if form.last_name %}
+              <div>
+                <label for="{{ form.last_name.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">Sobrenome</label>
+                <input type="text" name="last_name" id="{{ form.last_name.id_for_label }}"
+                       value="{{ form.last_name.value|default:'' }}"
+                       autocomplete="family-name" tabindex="2" required
+                       class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                       {% if form.last_name.errors %}aria-invalid="true" aria-describedby="erro-last_name"{% endif %}>
+                {% if form.last_name.errors %}
+                  <div id="erro-last_name">
+                    {% for error in form.last_name.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if form.email %}
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">E-mail</label>
+            <input type="email" name="email" id="{{ form.email.id_for_label }}"
+                   value="{{ form.email.value|default:'' }}"
+                   autocomplete="email" inputmode="email" tabindex="3" required
+                   placeholder="voce@exemplo.com.br"
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.email.errors %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
+            {% if form.email.errors %}
+              <div id="erro-email">
+                {% for error in form.email.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if form.password1 %}
+          <div>
+            <label for="{{ form.password1.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">Senha</label>
+            <input type="password" name="password1" id="{{ form.password1.id_for_label }}"
+                   autocomplete="new-password" tabindex="4" required
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.password1.errors %}aria-invalid="true" aria-describedby="erro-password1 dica-senha"{% else %}aria-describedby="dica-senha"{% endif %}>
+            <p id="dica-senha" class="mt-1.5 text-xs text-slate-500">Mínimo de 8 caracteres, sem ser muito parecida com seus dados pessoais.</p>
+            {% if form.password1.errors %}
+              <div id="erro-password1">
+                {% for error in form.password1.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {% if form.password2 %}
+          <div>
+            <label for="{{ form.password2.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">Confirmar senha</label>
+            <input type="password" name="password2" id="{{ form.password2.id_for_label }}"
+                   autocomplete="new-password" tabindex="5" required
+                   class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                   {% if form.password2.errors %}aria-invalid="true" aria-describedby="erro-password2"{% endif %}>
+            {% if form.password2.errors %}
+              <div id="erro-password2">
+                {% for error in form.password2.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        {# Campos extras eventualmente declarados no formulário, sem duplicar os acima. #}
+        {% for field in form %}
+          {% if field.name != 'first_name' and field.name != 'last_name' and field.name != 'email' and field.name != 'password1' and field.name != 'password2' %}
+            <div>
+              <label for="{{ field.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-300">
+                {{ field.label }}{% if field.field.required %} <span class="text-rose-400" aria-hidden="true">*</span>{% endif %}
+              </label>
+              {{ field }}
+              {% for error in field.errors %}<p class="mt-1.5 text-sm text-rose-400">{{ error }}</p>{% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        <button type="submit" tabindex="6"
+                class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300">
+          Criar conta
+        </button>
+      </form>
+
+      <p class="mt-6 border-t border-slate-800 pt-5 text-center text-sm text-slate-400">
+        Já tem uma conta?
+        <a href="{% url 'users:login' %}" class="font-semibold text-emerald-400 transition-colors hover:text-emerald-300">Entrar</a>
+      </p>
+    </div>
+
+    <p class="mt-4 text-center text-xs text-slate-500">
+      O Tallyora usa seu e-mail como identificador de acesso. Nenhum dado financeiro é compartilhado.
+    </p>
+  </div>
+{% endblock %}

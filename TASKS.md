@@ -1,25 +1,25 @@
 ## 13. Lista de Tarefas (Backlog Granular em Sprints)
 
-### Sprint 1: Fundação do Projeto, Banco PostgreSQL, BaseModel, Autenticação por E-mail e Design System
+### Sprint 1: Fundação do Projeto, Banco PostgreSQL, BaseModel, Autenticação por E-mail e Design System — [x] CONCLUÍDA
 - [x] **1.1. Configuração Inicial do Projeto e PostgreSQL (`core`)**
   - [x] **1.1.1.** Criar ambiente virtual Python (`.venv`), instalar `django`, `psycopg2-binary`, `python-dotenv` e gerar `requirements.txt`.
   - [x] **1.1.2.** Inicializar o projeto Django `core` na raiz e criar as apps iniciais: `users`, `profiles`, `accounts`, `categories`, `transactions`, `goals_events`, `investments`, `reminders`.
-  - [ ] **1.1.3.** Remover o arquivo `db.sqlite3` e configurar a conexão exclusiva com o banco de dados **PostgreSQL** no `core/settings.py` lendo variáveis de ambiente (`.env`).
-  - [ ] **1.1.4.** Configurar `LANGUAGE_CODE = 'pt-br'`, `TIME_ZONE = 'America/Sao_Paulo'`, `USE_I18N = True` e `USE_TZ = True` no `core/settings.py`.
-  - [ ] **1.1.5.** Criar o model abstrato `BaseModel` em `core/models.py` contendo `created_at` e `updated_at` para ser herdado por todas as entidades do sistema.
-- [ ] **1.2. Modelo de Usuário Customizado com Login por E-mail (`users`)**
-  - [ ] **1.2.1.** Criar `CustomUserManager` em `users/models.py` sobrescrevendo `create_user` e `create_superuser` para utilizar `email` como identificador obrigatório em vez de `username`.
-  - [ ] **1.2.2.** Criar o model `CustomUser(AbstractUser, BaseModel)` definindo `username = None`, `email = models.EmailField(unique=True)`, `USERNAME_FIELD = 'email'` e `REQUIRED_FIELDS = ['first_name', 'last_name']`.
-  - [ ] **1.2.3.** Definir `AUTH_USER_MODEL = 'users.CustomUser'` no `core/settings.py`, gerar e executar as migrações iniciais (`makemigrations` e `migrate`).
-  - [ ] **1.2.4.** Registrar `CustomUser` no `users/admin.py` com listagem e busca por e-mail e nome.
-- [ ] **1.3. Design System TailwindCSS e Templates Base (`templates`)**
-  - [ ] **1.3.1.** Criar `templates/base_public.html` com configuração do TailwindCSS, fonte `Inter`, fundo escuro `bg-slate-950`, navbar pública e rodapé.
-  - [ ] **1.3.2.** Criar `templates/base.html` para a área autenticada contendo Sidebar responsiva fixa (`bg-slate-900 border-slate-800`), links de navegação com estado ativo, topo com saudação ao usuário e bloco de mensagens de alerta (`django.contrib.messages`).
-  - [ ] **1.3.3.** Criar componentes parciais reutilizáveis em `templates/partials/` (`_card_kpi.html`, `_empty_state.html`, `_modal_confirm_delete.html`).
-- [ ] **1.4. Landing Page Pública e Fluxo de Autenticação (`core` & `users`)**
-  - [ ] **1.4.1.** Implementar `LandingPageView(TemplateView)` em `core/views.py` apresentando os recursos do Tallyora e botões "Cadastre-se" e "Entrar" (redirecionando usuários já logados para `/dashboard/`).
-  - [ ] **1.4.2.** Criar `UserRegistrationForm` e `EmailAuthenticationForm` em `users/forms.py` aplicando as classes do Design System TailwindCSS nos widgets e labels em pt-BR.
-  - [ ] **1.4.3.** Implementar `UserRegisterView(CreateView)`, `UserLoginView(LoginView)` e `UserLogoutView(LogoutView)` em `users/views.py`, configurando `LOGIN_REDIRECT_URL = 'core:dashboard'` e `LOGOUT_REDIRECT_URL = 'core:landing'`.
+  - [x] **1.1.3.** Remover o arquivo `db.sqlite3` e configurar a conexão exclusiva com o banco de dados **PostgreSQL** no `core/settings.py` lendo variáveis de ambiente (`.env`).
+  - [x] **1.1.4.** Configurar `LANGUAGE_CODE = 'pt-br'`, `TIME_ZONE = 'America/Sao_Paulo'`, `USE_I18N = True` e `USE_TZ = True` no `core/settings.py`.
+  - [x] **1.1.5.** Criar o model abstrato `BaseModel` em `core/models.py` contendo `created_at` e `updated_at` para ser herdado por todas as entidades do sistema.
+- [x] **1.2. Modelo de Usuário Customizado com Login por E-mail (`users`)**
+  - [x] **1.2.1.** Criar `CustomUserManager` em `users/models.py` sobrescrevendo `create_user` e `create_superuser` para utilizar `email` como identificador obrigatório em vez de `username`.
+  - [x] **1.2.2.** Criar o model `CustomUser(AbstractUser, BaseModel)` definindo `username = None`, `email = models.EmailField(unique=True)`, `USERNAME_FIELD = 'email'` e `REQUIRED_FIELDS = ['first_name', 'last_name']`.
+  - [x] **1.2.3.** Definir `AUTH_USER_MODEL = 'users.CustomUser'` no `core/settings.py`, gerar e executar as migrações iniciais (`makemigrations` e `migrate`).
+  - [x] **1.2.4.** Registrar `CustomUser` no `users/admin.py` com listagem e busca por e-mail e nome.
+- [x] **1.3. Design System TailwindCSS e Templates Base (`templates`)**
+  - [x] **1.3.1.** Criar `templates/base_public.html` com configuração do TailwindCSS, fonte `Inter`, fundo escuro `bg-slate-950`, navbar pública e rodapé.
+  - [x] **1.3.2.** Criar `templates/base.html` para a área autenticada contendo Sidebar responsiva fixa (`bg-slate-900 border-slate-800`), links de navegação com estado ativo, topo com saudação ao usuário e bloco de mensagens de alerta (`django.contrib.messages`).
+  - [x] **1.3.3.** Criar componentes parciais reutilizáveis em `templates/partials/` (`_card_kpi.html`, `_empty_state.html`, `_modal_confirm_delete.html`).
+- [x] **1.4. Landing Page Pública e Fluxo de Autenticação (`core` & `users`)**
+  - [x] **1.4.1.** Implementar `LandingPageView(TemplateView)` em `core/views.py` apresentando os recursos do Tallyora e botões "Cadastre-se" e "Entrar" (redirecionando usuários já logados para `/dashboard/`).
+  - [x] **1.4.2.** Criar `UserRegistrationForm` e `EmailAuthenticationForm` em `users/forms.py` aplicando as classes do Design System TailwindCSS nos widgets e labels em pt-BR.
+  - [x] **1.4.3.** Implementar `UserRegisterView(CreateView)`, `UserLoginView(LoginView)` e `UserLogoutView(LogoutView)` em `users/views.py`, configurando `LOGIN_REDIRECT_URL = 'core:dashboard'` e `LOGOUT_REDIRECT_URL = 'core:landing'`.
 
 ---
 

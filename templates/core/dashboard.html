@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">Dashboard</h1>
+      <p class="mt-1 text-sm text-slate-400">Visão geral do seu mês financeiro.</p>
+    </div>
+    <span class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
+      <span class="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true"></span>
+      Em construção
+    </span>
+  </div>
+
+  <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-md">
+    <div class="flex items-start gap-3">
+      <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 8h.01M11 12h1v4h1"></path>
+        </svg>
+      </span>
+      <div>
+        <p class="text-sm font-semibold text-slate-100">Os indicadores deste painel entram na Sprint 5.</p>
+        <p class="mt-1 text-sm text-slate-400">
+          Os cards consolidados, o gráfico de orçamento e o painel de lembretes do dia ainda não estão
+          disponíveis. Nada é exibido aqui para não mostrar números sem os seus lançamentos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <section class="mt-8" aria-labelledby="indicadores-titulo">
+    <h2 id="indicadores-titulo" class="text-xs font-medium uppercase tracking-wider text-slate-400">Indicadores do período</h2>
+    <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {% include 'partials/_card_kpi.html' with label='Receita Líquida do Período' value='R$ —' tone='neutral' %}
+      {% include 'partials/_card_kpi.html' with label='Total de Despesas' value='R$ —' tone='neutral' %}
+      {% include 'partials/_card_kpi.html' with label='Fatura do Cartão' value='R$ —' tone='neutral' %}
+      {% include 'partials/_card_kpi.html' with label='Total Alocado' value='R$ —' tone='neutral' %}
+    </div>
+    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+      {% include 'partials/_card_kpi.html' with label='Saldo Livre no Mês (O que sobra)' value='R$ —' tone='neutral' %}
+    </div>
+  </section>
+
+  <section class="mt-8" aria-labelledby="vazio-titulo">
+    <h2 id="vazio-titulo" class="sr-only">Estado inicial do dashboard</h2>
+    {% include 'partials/_empty_state.html' with title='Seu resumo financeiro começa no seu perfil' description='Quando o perfil financeiro e os lançamentos entrarem no ar, este painel mostra receita líquida, despesas, fatura do cartão, total alocado e o Saldo Livre do mês.' %}
+  </section>
+{% endblock %}

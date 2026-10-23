@@ -41,7 +41,16 @@ source venv/bin/activate
 python manage.py runserver
 ```
 
-Disponível em `http://127.0.0.1:8000/`. Hoje a única rota publicada é `http://127.0.0.1:8000/admin/`.
+Disponível em `http://127.0.0.1:8000/`. Rotas publicadas hoje:
+
+| Rota | O que é |
+| :--- | :--- |
+| `/` | Landing page pública (logado é redirecionado para `/dashboard/`) |
+| `/register/` | Cadastro por e-mail |
+| `/login/` | Login por e-mail |
+| `/logout/` | Logout (aceita **somente POST**) |
+| `/dashboard/` | Painel provisório (dados chegam na Sprint 5) |
+| `/admin/` | Django admin |
 
 ## Recriar o ambiente do zero (se necessário)
 
@@ -52,6 +61,23 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Banco de dados (PostgreSQL)
+
+O projeto usa **PostgreSQL 16** (serviço `postgresql` na VPS). Provisionamento já feito:
+
+```bash
+# executado como superusuário do sistema
+sudo -u postgres psql -c "CREATE ROLE tallyora WITH LOGIN PASSWORD '<senha>';"
+sudo -u postgres psql -c "CREATE DATABASE tallyora OWNER tallyora ENCODING 'UTF8';"
+```
+
+A senha fica **somente** no `.env` (`DB_PASSWORD`). Para conferir a conexão:
+
+```bash
+PGPASSWORD="$(grep '^DB_PASSWORD=' .env | cut -d= -f2-)" \
+  psql -h 127.0.0.1 -U tallyora -d tallyora -c 'select current_user;'
+```
+
 ## Migrações
 
 ```bash
@@ -59,7 +85,7 @@ python manage.py makemigrations   # após criar/alterar models
 python manage.py migrate          # aplica no banco
 ```
 
-O banco atual (`db.sqlite3`) já está migrado com as tabelas padrão do Django.
+Estado atual: todas as migrações aplicadas, incluindo `users.0001_initial` (o `CustomUser`).
 
 ## Superusuário (painel admin)
 
@@ -67,7 +93,8 @@ O banco atual (`db.sqlite3`) já está migrado com as tabelas padrão do Django.
 python manage.py createsuperuser
 ```
 
-Ainda não há model de usuário customizado — quando o `CustomUser` entrar (Sprint 1.2), o `createsuperuser` passa a pedir **e-mail** em vez de username.
+O `createsuperuser` pede **e-mail** (não username), porque `USERNAME_FIELD = 'email'`.
+
 
 ## Variáveis de ambiente
 
@@ -92,7 +119,7 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 ```
 
-O bloco `DB_*` ainda é **placeholder**: `core/settings.py` continua em SQLite e **não lê o `.env`** — não há `python-dotenv` carregado no settings e o `SECRET_KEY` segue hardcoded no arquivo. Ligar isso é a tarefa 1.1.3.
+O `core/settings.py` **lê o `.env`** via `python-dotenv` e falha ao subir sem `SECRET_KEY`. O bloco `DB_*` está preenchido com as credenciais reais do PostgreSQL local.
 
 Regra: `.env` nunca é commitado; qualquer chave nova entra primeiro no `.env.example`.
 

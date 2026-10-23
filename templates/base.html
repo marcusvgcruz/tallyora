@@ -1,0 +1,240 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tallyora{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-950 font-sans text-slate-100 antialiased">
+
+  {# ---------- Sidebar (fixa no desktop, gaveta no mobile) ---------- #}
+  <div id="sidebar-backdrop" class="fixed inset-0 z-40 hidden bg-slate-950/70 backdrop-blur-sm lg:hidden" aria-hidden="true"></div>
+
+  <aside id="sidebar"
+         class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-slate-800 bg-slate-900 transition-transform duration-200 ease-out lg:translate-x-0"
+         aria-label="Navegação principal">
+
+    <div class="flex h-16 shrink-0 items-center justify-between border-b border-slate-800 px-5">
+      <a href="{% url 'core:dashboard' %}" class="flex items-center gap-2" aria-label="Tallyora — Dashboard">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 17l5-5 3 3 7-7"></path>
+          </svg>
+        </span>
+        <span class="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">Tallyora</span>
+      </a>
+      <button type="button" id="sidebar-close"
+              class="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 lg:hidden"
+              aria-label="Fechar menu">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6L6 18M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      {% with current=request.resolver_match.url_name %}
+        <a href="{% url 'core:dashboard' %}"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {% if current == 'dashboard' %}bg-slate-800 text-slate-100{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-slate-200{% endif %}"
+           {% if current == 'dashboard' %}aria-current="page"{% endif %}>
+          <svg class="h-5 w-5 shrink-0 {% if current == 'dashboard' %}text-emerald-400{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+          </svg>
+          <span>Dashboard</span>
+          {% if current == 'dashboard' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
+        </a>
+
+        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span>Meu Perfil &amp; Salário</span>
+          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
+        </div>
+
+        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 7h13a2 2 0 012 2v8a2 2 0 01-2 2H3z"></path>
+            <path d="M18 10h3v6h-3"></path>
+            <circle cx="7" cy="13" r="1.5"></circle>
+          </svg>
+          <span>Transações &amp; Fatura</span>
+          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
+        </div>
+
+        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
+            <path d="M3 8v8l9 5 9-5V8"></path>
+            <path d="M12 13v8"></path>
+          </svg>
+          <span>Caixinhas &amp; Eventos</span>
+          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
+        </div>
+
+        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 17l5-6 4 3 5-7 4 4"></path>
+            <path d="M3 21h18"></path>
+          </svg>
+          <span>Investimentos P3X</span>
+          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
+        </div>
+
+        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.7 21a2 2 0 01-3.4 0"></path>
+          </svg>
+          <span>Lembretes do Dia</span>
+          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
+        </div>
+      {% endwith %}
+    </nav>
+
+    <div class="shrink-0 border-t border-slate-800 p-3">
+      <div class="mb-2 flex items-center gap-3 rounded-xl px-2 py-2">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold uppercase text-emerald-400">
+          {{ user.first_name|default:user.email|slice:":1" }}
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium text-slate-200">{{ user.first_name|default:user.email }}</p>
+          <p class="truncate text-xs text-slate-500">{{ user.email }}</p>
+        </div>
+      </div>
+      <form method="post" action="{% url 'users:logout' %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-rose-400">
+          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+            <path d="M16 17l5-5-5-5"></path>
+            <path d="M21 12H9"></path>
+          </svg>
+          <span>Sair da conta</span>
+        </button>
+      </form>
+    </div>
+  </aside>
+
+  {# ---------- Conteúdo ---------- #}
+  <div class="flex min-h-screen flex-col lg:pl-64">
+
+    <header class="sticky top-0 z-30 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md">
+      <div class="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+        <button type="button" id="sidebar-open"
+                class="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 lg:hidden"
+                aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+
+        <div class="min-w-0">
+          <p class="truncate text-sm text-slate-400">
+            Olá, <span class="font-semibold text-slate-100">{{ user.first_name|default:user.email }}</span>
+          </p>
+          <p class="hidden truncate text-xs text-slate-500 sm:block">Bem-vindo de volta ao Tallyora.</p>
+        </div>
+
+        <div class="ml-auto flex items-center gap-3">
+          <span class="hidden rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400 sm:inline-flex">Conta ativa</span>
+          <span class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold uppercase text-emerald-400">
+            {{ user.first_name|default:user.email|slice:":1" }}
+          </span>
+        </div>
+      </div>
+    </header>
+
+    {% if messages %}
+      <div class="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <ul class="space-y-3" aria-live="polite">
+          {% for message in messages %}
+            <li class="flex items-start gap-3 rounded-xl border px-4 py-3 text-sm
+              {% if message.tags == 'success' %}border-emerald-500/20 bg-emerald-500/10 text-emerald-400
+              {% elif message.tags == 'error' %}border-rose-500/20 bg-rose-500/10 text-rose-400
+              {% elif message.tags == 'warning' %}border-amber-500/20 bg-amber-500/10 text-amber-400
+              {% else %}border-cyan-500/20 bg-cyan-500/10 text-cyan-400{% endif %}">
+              <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                {% if message.tags == 'success' %}
+                  <path d="M20 6L9 17l-5-5"></path>
+                {% elif message.tags == 'error' %}
+                  <circle cx="12" cy="12" r="9"></circle><path d="M15 9l-6 6M9 9l6 6"></path>
+                {% elif message.tags == 'warning' %}
+                  <path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"></path>
+                {% else %}
+                  <circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01M11 12h1v4h1"></path>
+                {% endif %}
+              </svg>
+              <span class="text-slate-200">{{ message }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <main class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto border-t border-slate-800 px-4 py-6 sm:px-6 lg:px-8">
+      <p class="mx-auto max-w-7xl text-xs text-slate-500">Tallyora — valores em reais (R$), com precisão de centavos.</p>
+    </footer>
+  </div>
+
+  {% block extra_js %}{% endblock %}
+
+  <script>
+    (function () {
+      var sidebar = document.getElementById('sidebar');
+      var backdrop = document.getElementById('sidebar-backdrop');
+      var openBtn = document.getElementById('sidebar-open');
+      var closeBtn = document.getElementById('sidebar-close');
+
+      function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        backdrop.classList.remove('hidden');
+        if (openBtn) { openBtn.setAttribute('aria-expanded', 'true'); }
+      }
+
+      function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        backdrop.classList.add('hidden');
+        if (openBtn) { openBtn.setAttribute('aria-expanded', 'false'); }
+      }
+
+      if (openBtn) { openBtn.addEventListener('click', openSidebar); }
+      if (closeBtn) { closeBtn.addEventListener('click', closeSidebar); }
+      if (backdrop) { backdrop.addEventListener('click', closeSidebar); }
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') { closeSidebar(); }
+      });
+    })();
+  </script>
+</body>
+</html>

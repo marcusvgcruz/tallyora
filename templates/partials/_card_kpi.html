@@ -1,0 +1,23 @@
+{% comment %}
+==========================================================================
+partials/_card_kpi.html — card de indicador do dashboard.
+
+   Interface de contexto:
+     label  (str, obrigatório)  Rótulo do indicador, em pt-BR.
+     value  (str, obrigatório)  Valor já formatado (ex.: "R$ 1.850,00").
+     tone   (str, opcional)     'positive' | 'negative' | 'warning' | 'info' | 'neutral'.
+                                Padrão: 'positive'.
+
+   Uso:
+     {% include 'partials/_card_kpi.html' with label='Saldo Livre no Mês' value='R$ 1.850,00' tone='positive' %}
+   ==========================================================================
+{% endcomment %}
+<div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+  <span class="text-xs font-medium uppercase tracking-wider text-slate-400">{{ label }}</span>
+  <span class="mt-2 text-2xl font-bold tabular-nums
+    {% if tone == 'negative' %}text-rose-400
+    {% elif tone == 'warning' %}text-amber-400
+    {% elif tone == 'info' %}text-cyan-400
+    {% elif tone == 'neutral' %}text-slate-100
+    {% else %}text-emerald-400{% endif %}">{{ value }}</span>
+</div>
