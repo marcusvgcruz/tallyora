@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias — Tallyora{% endblock %}
+
+{% block content %}
+  {% with items=categories|default:object_list %}
+    <style>
+      /* A mensagem de grupo vazio só aparece quando nenhuma categoria do tipo foi
+         renderizada; ao existir qualquer item na lista, o <li> deixa de ser filho único. */
+      .categoria-lista > li.categoria-vazia:not(:only-child) { display: none; }
+    </style>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-100">Categorias</h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Organize receitas e despesas por categoria. A cor de cada categoria aparece nas bolinhas e nos gráficos.
+        </p>
+      </div>
+      <a href="{% url 'categories:create' %}"
+         class="inline-flex w-fit items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+        Nova categoria
+      </a>
+    </div>
+
+    {% if items %}
+      <div class="mt-6 space-y-8">
+        <section aria-labelledby="categorias-receitas-titulo">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 19V5"></path>
+                <path d="M5 12l7-7 7 7"></path>
+              </svg>
+            </span>
+            <h2 id="categorias-receitas-titulo" class="text-xs font-medium uppercase tracking-wider text-slate-400">Receitas</h2>
+          </div>
+
+          <div class="mt-3 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+            <ul class="categoria-lista divide-y divide-slate-800">
+              {% for category in items %}
+                {% if category.category_type == 'INCOME' %}
+                  <li class="flex flex-wrap items-center gap-3 px-5 py-4 transition-colors hover:bg-slate-800/40">
+                    <span class="h-3 w-3 shrink-0 rounded-full border border-slate-700" style="background-color: {{ category.color_hex|default:'#10b981' }}" aria-hidden="true"></span>
+                    <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-100">{{ category.name }}</span>
+                    <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">Receita</span>
+                    <div class="flex items-center gap-2">
+                      <a href="{% url 'categories:update' category.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                         aria-label="Editar categoria {{ category.name }}">Editar</a>
+                      <a href="{% url 'categories:delete' category.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                         aria-label="Excluir categoria {{ category.name }}">Excluir</a>
+                    </div>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              <li class="categoria-vazia px-5 py-6 text-sm text-slate-500">
+                Nenhuma categoria de receita cadastrada ainda.
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <section aria-labelledby="categorias-despesas-titulo">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-400">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 5v14"></path>
+                <path d="M19 12l-7 7-7-7"></path>
+              </svg>
+            </span>
+            <h2 id="categorias-despesas-titulo" class="text-xs font-medium uppercase tracking-wider text-slate-400">Despesas</h2>
+          </div>
+
+          <div class="mt-3 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+            <ul class="categoria-lista divide-y divide-slate-800">
+              {% for category in items %}
+                {% if category.category_type == 'EXPENSE' %}
+                  <li class="flex flex-wrap items-center gap-3 px-5 py-4 transition-colors hover:bg-slate-800/40">
+                    <span class="h-3 w-3 shrink-0 rounded-full border border-slate-700" style="background-color: {{ category.color_hex|default:'#f43f5e' }}" aria-hidden="true"></span>
+                    <span class="min-w-0 flex-1 truncate text-sm font-medium text-slate-100">{{ category.name }}</span>
+                    <span class="rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-xs font-medium text-rose-400">Despesa</span>
+                    <div class="flex items-center gap-2">
+                      <a href="{% url 'categories:update' category.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                         aria-label="Editar categoria {{ category.name }}">Editar</a>
+                      <a href="{% url 'categories:delete' category.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                         aria-label="Excluir categoria {{ category.name }}">Excluir</a>
+                    </div>
+                  </li>
+                {% endif %}
+              {% endfor %}
+              <li class="categoria-vazia px-5 py-6 text-sm text-slate-500">
+                Nenhuma categoria de despesa cadastrada ainda.
+              </li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    {% else %}
+      {% url 'categories:create' as criar_categoria_url %}
+      {% include 'partials/_empty_state.html' with title='Nenhuma categoria cadastrada' description='Cadastre categorias de receita e despesa para classificar seus lançamentos e enxergar para onde o dinheiro vai.' action_url=criar_categoria_url action_label='Cadastrar categoria' %}
+    {% endif %}
+  {% endwith %}
+{% endblock %}

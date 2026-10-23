@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir conta — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="mx-auto max-w-xl">
+    <a href="{% url 'accounts:list' %}"
+       class="inline-flex w-fit items-center gap-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5"></path>
+        <path d="M12 19l-7-7 7-7"></path>
+      </svg>
+      Voltar para Contas &amp; Cartões
+    </a>
+
+    <div class="mt-6 rounded-2xl border border-rose-500/20 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+      <div class="flex items-start gap-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10 text-rose-400">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h18"></path>
+            <path d="M8 6V4h8v2"></path>
+            <path d="M19 6l-1 14H6L5 6"></path>
+            <path d="M10 11v5M14 11v5"></path>
+          </svg>
+        </span>
+        <div class="min-w-0">
+          <h1 class="text-lg font-semibold text-slate-100">Excluir conta “{{ object.name }}”</h1>
+          <p class="mt-2 text-sm text-slate-400">
+            Esta ação não pode ser desfeita. A conta será removida da sua lista e não poderá mais ser usada nos lançamentos.
+          </p>
+          {% if object.has_credit_card %}
+            <p class="mt-2 text-sm text-amber-400">
+              Esta conta tem cartão de crédito cadastrado (fecha dia {{ object.closing_day|default:'—' }} e vence dia {{ object.due_day|default:'—' }}).
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <form method="post" action="{% url 'accounts:delete' object.pk %}" class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        {% csrf_token %}
+        <a href="{% url 'accounts:list' %}"
+           class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          Cancelar
+        </a>
+        <button type="submit"
+                class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-sm font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50">
+          Excluir conta
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

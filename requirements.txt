@@ -1,5 +1,7 @@
 asgiref==3.13.0
+django-tailwind[cookiecutter]==4.6.0
 Django==6.1.2
 psycopg2-binary==2.9.13
+pytailwindcss==0.4.2
 python-dotenv==1.2.4
 sqlparse==0.6.0

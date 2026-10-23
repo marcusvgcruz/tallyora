@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Escopo de arquivos que o Tailwind varre em busca de classes utilitárias. */
+@source "../../../**/*.{html,py,js}";
+
+/* Tipografia do design system: Inter como fonte sans padrão. */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}

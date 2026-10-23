@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Contas &amp; Cartões — Tallyora{% endblock %}
+
+{% block content %}
+  {% with items=accounts|default:object_list %}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-100">Contas &amp; Cartões</h1>
+        <p class="mt-1 text-sm text-slate-400">
+          Cadastre suas contas bancárias e informe quais delas têm cartão de crédito com fechamento e vencimento.
+        </p>
+      </div>
+      <a href="{% url 'accounts:create' %}"
+         class="inline-flex w-fit items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+        Nova conta
+      </a>
+    </div>
+
+    {% if items %}
+      <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+            <caption class="sr-only">Contas bancárias e cartões de crédito cadastrados</caption>
+            <thead class="bg-slate-900/60">
+              <tr>
+                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Conta</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Saldo inicial</th>
+                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Cartão de crédito</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              {% for account in items %}
+                <tr class="transition-colors hover:bg-slate-800/40">
+                  <td class="whitespace-nowrap px-5 py-4">
+                    <div class="flex items-center gap-3">
+                      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-800 bg-slate-800/60 text-cyan-400">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <path d="M3 7h13a2 2 0 012 2v8a2 2 0 01-2 2H3z"></path>
+                          <path d="M18 10h3v6h-3"></path>
+                          <circle cx="7" cy="13" r="1.5"></circle>
+                        </svg>
+                      </span>
+                      <span class="font-medium text-slate-100">{{ account.name }}</span>
+                    </div>
+                  </td>
+
+                  <td class="whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums {% if account.initial_balance < 0 %}text-rose-400{% else %}text-slate-100{% endif %}">
+                    R$ {{ account.initial_balance|floatformat:"2g" }}
+                  </td>
+
+                  <td class="whitespace-nowrap px-5 py-4">
+                    {% if account.has_credit_card %}
+                      <div class="flex flex-col gap-1">
+                        <span class="inline-flex w-fit items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                          Cartão de crédito
+                        </span>
+                        <span class="text-xs tabular-nums text-slate-500">
+                          {% if account.closing_day %}Fecha dia {{ account.closing_day }}{% endif %}
+                          {% if account.closing_day and account.due_day %} · {% endif %}
+                          {% if account.due_day %}Vence dia {{ account.due_day }}{% endif %}
+                        </span>
+                      </div>
+                    {% else %}
+                      <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-400">
+                        Sem cartão
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td class="whitespace-nowrap px-5 py-4">
+                    <div class="flex items-center justify-end gap-2">
+                      <a href="{% url 'accounts:update' account.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                         aria-label="Editar conta {{ account.name }}">
+                        Editar
+                      </a>
+                      <a href="{% url 'accounts:delete' account.pk %}"
+                         class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                         aria-label="Excluir conta {{ account.name }}">
+                        Excluir
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% else %}
+      {% url 'accounts:create' as criar_conta_url %}
+      {% include 'partials/_empty_state.html' with title='Nenhuma conta cadastrada' description='Cadastre sua conta corrente, poupança ou carteira digital para começar a lançar receitas e despesas nela.' action_url=criar_conta_url action_label='Cadastrar conta' %}
+    {% endif %}
+  {% endwith %}
+{% endblock %}

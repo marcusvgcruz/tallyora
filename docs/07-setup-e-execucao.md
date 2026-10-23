@@ -87,6 +87,19 @@ python manage.py migrate          # aplica no banco
 
 Estado atual: todas as migrações aplicadas, incluindo `users.0001_initial` (o `CustomUser`).
 
+## Tailwind (CSS)
+
+O CSS é compilado localmente com `django-tailwind` (app `theme/`, CLI standalone). **A cada mudança de template é obrigatório rebuildar:**
+
+```bash
+python manage.py tailwind build
+```
+
+- Fonte: `theme/static_src/src/styles.css` (importa o Tailwind e escaneia templates/py/js).
+- Saída: `theme/static/css/dist/styles.css` — **versionada**, é o arquivo servido em runtime.
+- Se uma classe nova não aparecer na página, faltou o build (ou a classe está em arquivo fora do `@source`).
+- Primeira instalação do CLI (uma vez por ambiente): `python manage.py tailwind install`.
+
 ## Superusuário (painel admin)
 
 ```bash

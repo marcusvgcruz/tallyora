@@ -10,9 +10,18 @@ Toda tela herda de um template mestre:
 | :--- | :--- |
 | `templates/base_public.html` | Landing Page, cadastro, login, recuperação de senha (visitante) |
 | `templates/base.html` | Área autenticada (sidebar + conteúdo + mensagens) |
-| `templates/partials/` | Componentes reutilizáveis: `_card_kpi.html`, `_empty_state.html`, `_modal_confirm_delete.html` |
+| `templates/partials/` | Componentes reutilizáveis: `_card_kpi.html`, `_empty_state.html`, `_modal_confirm_delete.html`, `_form_field.html` (label + widget + ajuda + erros) |
 
 Stack de apresentação: **DTL + TailwindCSS + Chart.js** (apenas gráficos de pizza/rosca do dashboard e da carteira). Nenhum framework JS de SPA.
+
+O Tailwind é **compilado localmente** com `django-tailwind` (app `theme/`) e o CLI standalone — **não** há CDN. Isso significa que classe utilitária nova só aparece na página depois do build:
+
+```bash
+python manage.py tailwind build     # obrigatório a cada mudança de template
+```
+
+O CSS final fica em `theme/static/css/dist/styles.css` e é **versionado** (runtime depende dele). Os templates base carregam o arquivo com `{% tailwind_css %}`. O fonte é `theme/static_src/src/styles.css`, que importa o Tailwind e escaneia `templates/`, `*/templates/` e arquivos `.py`/`.js` em busca de classes.
+
 
 ## 2. Tema
 

@@ -1,0 +1,50 @@
+{% comment %}
+==========================================================================
+partials/_form_field.html — campo de formulário do design system.
+
+   Interface de contexto:
+     field  (BoundField, obrigatório)  Campo do formulário Django.
+
+   Renderiza rótulo associado (for/id), o widget, o texto de ajuda e os
+   erros do campo. As classes de input/select/textarea são aplicadas pelo
+   container via variantes arbitrárias do Tailwind, então o campo fica no
+   padrão visual mesmo que o widget do form não traga classes.
+
+   Uso:
+     {% for field in form %}{% include 'partials/_form_field.html' with field=field %}{% endfor %}
+   ==========================================================================
+{% endcomment %}
+{% if field.field.widget.input_type == 'checkbox' %}
+  <div class="[&_input]:mt-0.5 [&_input]:h-4 [&_input]:w-4 [&_input]:shrink-0 [&_input]:accent-emerald-500">
+    <div class="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-800/60 px-4 py-3">
+      {{ field }}
+      <div class="min-w-0">
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-200">{{ field.label }}</label>
+        {% if field.help_text %}
+          <p id="{{ field.id_for_label }}-ajuda" class="mt-1 text-xs text-slate-500">{{ field.help_text }}</p>
+        {% endif %}
+      </div>
+    </div>
+    {% for error in field.errors %}
+      <p class="mt-1.5 text-xs font-medium text-rose-400">{{ error }}</p>
+    {% endfor %}
+  </div>
+{% else %}
+  <div>
+    <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-300">
+      {{ field.label }}{% if field.field.required %}<span class="ml-0.5 text-rose-400" aria-hidden="true">*</span>{% endif %}
+    </label>
+
+    <div class="[&_input]:w-full [&_input]:rounded-xl [&_input]:border [&_input]:border-slate-700 [&_input]:bg-slate-900 [&_input]:px-4 [&_input]:py-2.5 [&_input]:text-sm [&_input]:text-slate-100 [&_input]:placeholder:text-slate-500 [&_input]:transition-all [&_input]:focus:border-emerald-500 [&_input]:focus:outline-none [&_input]:focus:ring-2 [&_input]:focus:ring-emerald-500/50 [&_select]:w-full [&_select]:rounded-xl [&_select]:border [&_select]:border-slate-700 [&_select]:bg-slate-900 [&_select]:px-4 [&_select]:py-2.5 [&_select]:text-sm [&_select]:text-slate-100 [&_select]:transition-all [&_select]:focus:border-emerald-500 [&_select]:focus:outline-none [&_select]:focus:ring-2 [&_select]:focus:ring-emerald-500/50 [&_textarea]:w-full [&_textarea]:rounded-xl [&_textarea]:border [&_textarea]:border-slate-700 [&_textarea]:bg-slate-900 [&_textarea]:px-4 [&_textarea]:py-2.5 [&_textarea]:text-sm [&_textarea]:text-slate-100 [&_textarea]:placeholder:text-slate-500 [&_textarea]:transition-all [&_textarea]:focus:border-emerald-500 [&_textarea]:focus:outline-none [&_textarea]:focus:ring-2 [&_textarea]:focus:ring-emerald-500/50">
+      {{ field }}
+    </div>
+
+    {% if field.help_text %}
+      <p id="{{ field.id_for_label }}-ajuda" class="mt-1.5 text-xs text-slate-500">{{ field.help_text }}</p>
+    {% endif %}
+
+    {% for error in field.errors %}
+      <p class="mt-1.5 text-xs font-medium text-rose-400">{{ error }}</p>
+    {% endfor %}
+  </div>
+{% endif %}

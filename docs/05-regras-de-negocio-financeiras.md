@@ -9,6 +9,7 @@ Regras que definem o funcionamento do motor de cálculo. Estão no PRD (RF09, RF
 | `CLT` mensal | `base_gross_income` − soma das `PayrollDeduction` ativas do usuário |
 | `CLT` quinzenal | 1ª quinzena (dia 15) = `base_gross_income × advance_percentage`, **sem descontos**; 2ª quinzena (dia 30) = restante (`100% − advance_percentage`) **menos** os descontos de folha. `advance_percentage` padrão `40.00`. |
 | `PJ` | Receita realizada no período selecionado (semana, quinzena ou mês); não há desconto de folha. |
+| `CLT` semanal (`WEEKLY`) | Pagamento único no fechamento do período: não há divisão em quinzenas (`first_half_income = 0`, `second_half_income = líquido`). |
 
 O período selecionado pode ser: **mês completo**, **1ª quinzena** ou **2ª quinzena**.
 

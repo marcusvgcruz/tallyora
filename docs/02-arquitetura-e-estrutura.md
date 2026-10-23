@@ -10,7 +10,7 @@
 | psycopg2-binary | 2.9.13 (driver em uso) |
 | python-dotenv | 1.2.4 (`core/settings.py` carrega o `.env`) |
 | Banco de dados | PostgreSQL, database `tallyora`, role `tallyora` em `127.0.0.1:5432` |
-| Frontend | DTL + TailwindCSS (CDN) implementados na Sprint 1; Chart.js ainda pendente |
+| Frontend | DTL + TailwindCSS 4 compilado localmente (`django-tailwind` 4.6.0 + CLI standalone v4.3.3); Chart.js ainda pendente |
 
 > O PRD cita "Django 5.x". O instalado é **Django 6.1.2** — decisão pendente de registro. A migração para PostgreSQL já foi feita (tarefa 1.1.3). Ver `08-estado-do-projeto.md`.
 
@@ -30,7 +30,12 @@ tallyora/
 │   ├── base_public.html    # área pública (landing, login, cadastro)
 │   ├── core/               # landing.html, dashboard.html
 │   ├── users/              # login.html, register.html
-│   └── partials/           # _card_kpi, _empty_state, _modal_confirm_delete
+│   ├── profiles/           # profile_detail.html (perfil + descontos)
+│   ├── accounts/           # account_list, account_form, account_confirm_delete
+│   ├── categories/         # category_list, category_form, category_confirm_delete
+│   └── partials/           # _card_kpi, _empty_state, _modal_confirm_delete, _form_field
+├── theme/                  # app do django-tailwind: fonte (static_src) e CSS compilado
+│   └── static/css/dist/styles.css   # saída do build (versionada)
 ├── venv/                   # ambiente virtual Python 3.12.3
 ├── core/                   # projeto Django: settings, root_urls, urls, views, models (BaseModel)
 ├── users/                  # CustomUser, forms, views, urls, admin, migração inicial
@@ -43,7 +48,7 @@ tallyora/
 └── reminders/              # app de lembretes
 ```
 
-`static/` ainda **não existe** — o Tailwind vem por CDN. `STATICFILES_DIRS` só é populado se a pasta existir.
+`static/` ainda **não existe**. O CSS vem do app `theme/` (`django-tailwind`), compilado para `theme/static/css/dist/styles.css` com `python manage.py tailwind build`. `STATICFILES_DIRS` só é populado se a pasta `static/` existir.
 
 ## Camadas e responsabilidades
 
@@ -62,13 +67,14 @@ tallyora/
 > **Por que existe `core/root_urls.py`:** o namespace `core:` é criado pelo `include('core.urls')`. Colocar `app_name` direto no `ROOT_URLCONF` **não** registra namespace (verificado na prática: resulta em `NoReverseMatch`). Por isso o root é um arquivo separado e `core/urls.py` continua sendo a URLconf da app.
 
 
-`services.py` e `signals.py` aparecem no backlog (`TASKS.md` 3.3.1, 4.2.4, 5.1.3 e 2.1.3/2.3.2) — são a convenção adotada para onde a lógica deve ir, ainda não existem em disco.
+`signals.py` já existe em `profiles/` (cria o `UserProfile`) e `categories/` (categorias padrão). `services.py` continua só no backlog (`TASKS.md` 3.3.1, 4.2.4, 5.1.3) — é a convenção adotada para onde a lógica de cálculo deve ir nas sprints 3 a 5.
 
 ## Configuração atual do `core/settings.py`
 
 Valores presentes hoje no arquivo:
 
-- `INSTALLED_APPS`: apps padrão do Django + as 8 apps do projeto.
+- `INSTALLED_APPS`: apps padrão do Django + `tailwind` + `theme` + as 8 apps do projeto.
+- `TAILWIND_APP_NAME = 'theme'`, `INTERNAL_IPS = ['127.0.0.1']`, `NPM_BIN_PATH` do env (o build usa o CLI standalone, não precisa de Node).
 - `load_dotenv(BASE_DIR / '.env')` no topo: toda configuração sensível vem do ambiente.
 - `SECRET_KEY` obrigatória — se faltar no `.env`, o projeto não sobe (`ImproperlyConfigured`).
 - `DEBUG` e `ALLOWED_HOSTS` parseados do `.env` por helpers `env_bool()` e `env_list()`.
@@ -91,8 +97,21 @@ Valores presentes hoje no arquivo:
 | `/logout/` | `users:logout` | `UserLogoutView` | **somente POST** |
 | `/dashboard/` | `core:dashboard` | `DashboardView` (provisória, dados na Sprint 5) | autenticado |
 | `/admin/` | — | Django admin | staff |
+| `/perfil/` | `profiles:profile` | `ProfileConfigView` (exibe e edita o perfil) | autenticado |
+| `/perfil/descontos/novo/` | `profiles:deduction_create` | `PayrollDeductionCreateView` | autenticado (**POST**) |
+| `/perfil/descontos/<pk>/excluir/` | `profiles:deduction_delete` | `PayrollDeductionDeleteView` | autenticado (**POST**) |
+| `/contas/` | `accounts:list` | `AccountListView` | autenticado |
+| `/contas/novo/` | `accounts:create` | `AccountCreateView` | autenticado |
+| `/contas/<pk>/editar/` | `accounts:update` | `AccountUpdateView` | autenticado |
+| `/contas/<pk>/excluir/` | `accounts:delete` | `AccountDeleteView` | autenticado (**POST**) |
+| `/categorias/` | `categories:list` | `CategoryListView` | autenticado |
+| `/categorias/nova/` | `categories:create` | `CategoryCreateView` | autenticado |
+| `/categorias/<pk>/editar/` | `categories:update` | `CategoryUpdateView` | autenticado |
+| `/categorias/<pk>/excluir/` | `categories:delete` | `CategoryDeleteView` | autenticado (**POST**) |
 
-Ainda **não existem**: `/profile/setup/`, `/transactions/`, `/investments/`, `/events/`, `/reminders/` — são das sprints 2 a 5.
+`.py` de contas, categorias e descontos usam `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
+
+Ainda **não existem**: `/transactions/`, `/investments/`, `/events/`, `/reminders/` — são das sprints 3 a 5. O PRD cita `/profile/setup/` como onboarding; o projeto expõe a edição do perfil em `/perfil/` (o onboarding não é tarefa do backlog).
 
 
 ## O que não usar

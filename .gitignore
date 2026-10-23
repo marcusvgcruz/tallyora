@@ -12,7 +12,11 @@ __pycache__/
 *.egg-info/
 .eggs/
 build/
-dist/
+
+# Tailwind (django-tailwind): dependências Node ignoradas;
+# o CSS compilado em theme/static/css/dist/ É versionado (usado em runtime).
+node_modules/
+theme/static_src/node_modules/
 
 # Django
 *.log

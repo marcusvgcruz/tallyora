@@ -23,23 +23,23 @@
 
 ---
 
-### Sprint 2: Perfil Financeiro (CLT / PJ), Descontos de Folha, Contas e Categorias
-- [ ] **2.1. Perfil Financeiro e Descontos Salariais (`profiles`)**
-  - [ ] **2.1.1.** Criar o model `UserProfile(BaseModel)` em `profiles/models.py` com `OneToOneField` para `CustomUser`, campos `work_regime` (`CLT`, `PJ`), `payment_frequency` (`WEEKLY`, `BIWEEKLY`, `MONTHLY`), `base_gross_income`, `advance_percentage` (padrão `40.00`), `has_investments`, `investment_allocation_type` (`PERCENTAGE`, `FIXED`) e `investment_allocation_value`.
-  - [ ] **2.1.2.** Criar o model `PayrollDeduction(BaseModel)` em `profiles/models.py` para registrar descontos fixos de contracheque CLT (ex: INSS, IRRF, Consignado, Plano de Saúde).
-  - [ ] **2.1.3.** Criar `profiles/signals.py` com signal `post_save` vinculado ao `CustomUser` para criar automaticamente um `UserProfile` padrão assim que um novo usuário se cadastrar, registrando-o em `profiles/apps.py`.
-  - [ ] **2.1.4.** Criar `UserProfileForm` e `PayrollDeductionForm` em `profiles/forms.py` com validações de porcentagem ($0\%$ a $100\%$) e estilização Tailwind.
-  - [ ] **2.1.5.** Implementar as CBVs `ProfileConfigView(LoginRequiredMixin, UpdateView)`, `PayrollDeductionCreateView(LoginRequiredMixin, CreateView)` e `PayrollDeductionDeleteView(LoginRequiredMixin, DeleteView)` em `profiles/views.py`.
-  - [ ] **2.1.6.** Criar o template `profiles/profile_detail.html` exibindo o resumo salarial (Bruto, Descontos de Folha, Valor 1ª Quinzena Dia 15, Valor 2ª Quinzena Dia 30 e Salário Líquido Total).
-- [ ] **2.2. Contas Bancárias e Cartões de Crédito (`accounts`)**
-  - [ ] **2.2.1.** Criar o model `BankAccount(BaseModel)` em `accounts/models.py` contendo `user`, `name`, `initial_balance`, `has_credit_card`, `closing_day` e `due_day`.
-  - [ ] **2.2.2.** Criar `BankAccountForm` em `accounts/forms.py` validando que `closing_day` e `due_day` estejam entre 1 e 31 quando `has_credit_card=True`.
-  - [ ] **2.2.3.** Implementar `AccountListView`, `AccountCreateView`, `AccountUpdateView` e `AccountDeleteView` em `accounts/views.py` filtrando por `request.user`.
-  - [ ] **2.2.4.** Criar os templates de listagem e formulário de contas/cartões em `templates/accounts/`.
-- [ ] **2.3. Categorias de Transações (`categories`)**
-  - [ ] **2.3.1.** Criar o model `Category(BaseModel)` em `categories/models.py` com `user`, `name`, `category_type` (`INCOME`, `EXPENSE`) e `color_hex`.
-  - [ ] **2.3.2.** Implementar signal em `categories/signals.py` para popular categorias padrão (Salário, Adiantamento, Moradia, Alimentação, Transporte, Lazer, Saúde, Assinaturas) ao criar um novo usuário.
-  - [ ] **2.3.3.** Implementar CRUD completo via CBVs (`CategoryListView`, `CategoryCreateView`, `CategoryUpdateView`, `CategoryDeleteView`) e templates em `templates/categories/`.
+### Sprint 2: Perfil Financeiro (CLT / PJ), Descontos de Folha, Contas e Categorias — [x] CONCLUÍDA
+- [x] **2.1. Perfil Financeiro e Descontos Salariais (`profiles`)**
+  - [x] **2.1.1.** Criar o model `UserProfile(BaseModel)` em `profiles/models.py` com `OneToOneField` para `CustomUser`, campos `work_regime` (`CLT`, `PJ`), `payment_frequency` (`WEEKLY`, `BIWEEKLY`, `MONTHLY`), `base_gross_income`, `advance_percentage` (padrão `40.00`), `has_investments`, `investment_allocation_type` (`PERCENTAGE`, `FIXED`) e `investment_allocation_value`.
+  - [x] **2.1.2.** Criar o model `PayrollDeduction(BaseModel)` em `profiles/models.py` para registrar descontos fixos de contracheque CLT (ex: INSS, IRRF, Consignado, Plano de Saúde).
+  - [x] **2.1.3.** Criar `profiles/signals.py` com signal `post_save` vinculado ao `CustomUser` para criar automaticamente um `UserProfile` padrão assim que um novo usuário se cadastrar, registrando-o em `profiles/apps.py`.
+  - [x] **2.1.4.** Criar `UserProfileForm` e `PayrollDeductionForm` em `profiles/forms.py` com validações de porcentagem ($0\%$ a $100\%$) e estilização Tailwind.
+  - [x] **2.1.5.** Implementar as CBVs `ProfileConfigView(LoginRequiredMixin, UpdateView)`, `PayrollDeductionCreateView(LoginRequiredMixin, CreateView)` e `PayrollDeductionDeleteView(LoginRequiredMixin, DeleteView)` em `profiles/views.py`.
+  - [x] **2.1.6.** Criar o template `profiles/profile_detail.html` exibindo o resumo salarial (Bruto, Descontos de Folha, Valor 1ª Quinzena Dia 15, Valor 2ª Quinzena Dia 30 e Salário Líquido Total).
+- [x] **2.2. Contas Bancárias e Cartões de Crédito (`accounts`)**
+  - [x] **2.2.1.** Criar o model `BankAccount(BaseModel)` em `accounts/models.py` contendo `user`, `name`, `initial_balance`, `has_credit_card`, `closing_day` e `due_day`.
+  - [x] **2.2.2.** Criar `BankAccountForm` em `accounts/forms.py` validando que `closing_day` e `due_day` estejam entre 1 e 31 quando `has_credit_card=True`.
+  - [x] **2.2.3.** Implementar `AccountListView`, `AccountCreateView`, `AccountUpdateView` e `AccountDeleteView` em `accounts/views.py` filtrando por `request.user`.
+  - [x] **2.2.4.** Criar os templates de listagem e formulário de contas/cartões em `templates/accounts/`.
+- [x] **2.3. Categorias de Transações (`categories`)**
+  - [x] **2.3.1.** Criar o model `Category(BaseModel)` em `categories/models.py` com `user`, `name`, `category_type` (`INCOME`, `EXPENSE`) e `color_hex`.
+  - [x] **2.3.2.** Implementar signal em `categories/signals.py` para popular categorias padrão (Salário, Adiantamento, Moradia, Alimentação, Transporte, Lazer, Saúde, Assinaturas) ao criar um novo usuário.
+  - [x] **2.3.3.** Implementar CRUD completo via CBVs (`CategoryListView`, `CategoryCreateView`, `CategoryUpdateView`, `CategoryDeleteView`) e templates em `templates/categories/`.
 
 ---
 

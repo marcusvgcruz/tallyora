@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'tailwind',
+    'theme',
+
     'accounts',
     'categories',
     'goals_events',
@@ -170,3 +173,12 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Tailwind CSS
+
+TAILWIND_APP_NAME = 'theme'
+
+INTERNAL_IPS = ['127.0.0.1']
+
+NPM_BIN_PATH = os.environ.get('NPM_BIN_PATH', 'npm')
