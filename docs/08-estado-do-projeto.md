@@ -13,6 +13,9 @@ Retrato do que existe em disco hoje (23/10/2026), verificado diretamente no cód
 | Banco SQLite migrado com as tabelas padrão do Django | `db.sqlite3` com `auth_*`, `admin`, `sessions`, `contenttypes` |
 | Rota do admin publicada | `core/urls.py` → `path('admin/', admin.site.urls)` |
 | `manage.py check` sem erros | executado no ambiente atual |
+| `.gitignore` + `.env.example` na raiz | excluem `venv/`, `__pycache__/`, `db.sqlite3` e `.env`; template versionado com as chaves |
+| `.env` local gerado | `SECRET_KEY` de 50 caracteres, permissão `600`, fora do versionamento |
+| Repositório Git publicado | `main` → https://github.com/marcusvgcruz/tallyora (público, 76 arquivos) |
 
 Tarefas marcadas como concluídas no `TASKS.md`: **1.1.1** e **1.1.2**.
 
@@ -20,7 +23,7 @@ Tarefas marcadas como concluídas no `TASKS.md`: **1.1.1** e **1.1.2**.
 
 Nenhum model de domínio existe. Todos os `models.py`, `views.py`, `forms.py` (inexistentes), `admin.py` e `tests.py` das apps estão no estado gerado pelo Django (só o cabeçalho/import, sem conteúdo).
 
-Também não existem: `templates/`, `static/`, `.env`, `.gitignore`, `signals.py`, `services.py`, `urls.py` por app, `BaseModel`, `CustomUser`, migrations de domínio, Docker, testes.
+Também não existem: `templates/`, `static/`, `signals.py`, `services.py`, `urls.py` por app, `BaseModel`, `CustomUser`, migrations de domínio, Docker, testes.
 
 ## Próximos passos na ordem do backlog (Sprint 1)
 
@@ -45,6 +48,7 @@ Depois: Sprint 2 (perfil, descontos, contas, categorias) → Sprint 3 (transaç�
 | Idioma/timezone | `pt-br` / `America/Sao_Paulo` | `en-us` / `UTC` |
 | Usuário | `CustomUser` por e-mail | `auth.User` padrão |
 | Templates/statics | `templates/` + `static/` | não existem |
+| Configuração por ambiente | `.env` lido com `python-dotenv` | `.env` existe, mas **o `settings.py` não o lê** — `SECRET_KEY` e banco seguem hardcoded |
 
 As duas primeiras divergências são resolvidas pelas próprias tarefas do backlog (1.1.3 e 1.1.4). A versão 6.1.2 do Django foi a instalada no ambiente — se o time precisar fixar 5.x, é uma decisão a registrar antes de escrever código dependente de API.
 

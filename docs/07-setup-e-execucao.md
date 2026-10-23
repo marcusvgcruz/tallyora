@@ -71,17 +71,52 @@ Ainda não há model de usuário customizado — quando o `CustomUser` entrar (S
 
 ## Variáveis de ambiente
 
-Ainda **não existe** arquivo `.env` no projeto. Quando a tarefa 1.1.3 for executada, o padrão é:
+O projeto **já possui** dois arquivos na raiz:
 
-1. Criar `.env` na raiz (não versionado).
-2. Ler com `python-dotenv` no `core/settings.py`.
-3. Chaves previstas: credenciais do PostgreSQL (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`), `SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`.
+| Arquivo | Estado |
+| :--- | :--- |
+| `.env` | **Criado localmente, não versionado** (permissão `600`, `SECRET_KEY` já gerada com 50 caracteres). Está no `.gitignore`. |
+| `.env.example` | Versionado — template com as chaves e valores de exemplo, sem segredo. |
 
-Nunca commitar `.env` nem deixar credenciais no `settings.py`.
+Chaves existentes:
+
+```text
+SECRET_KEY=<gerada>
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+DB_NAME=tallyora
+DB_USER=tallyora
+DB_PASSWORD=
+DB_HOST=127.0.0.1
+DB_PORT=5432
+```
+
+O bloco `DB_*` ainda é **placeholder**: `core/settings.py` continua em SQLite e **não lê o `.env`** — não há `python-dotenv` carregado no settings e o `SECRET_KEY` segue hardcoded no arquivo. Ligar isso é a tarefa 1.1.3.
+
+Regra: `.env` nunca é commitado; qualquer chave nova entra primeiro no `.env.example`.
 
 ## Execução com Docker
 
 Planejada para a Sprint 6 (tarefas 6.3.1–6.3.3): `Dockerfile` em `python:3.12-slim` e `docker-compose.yml` com os serviços `web` (Django) e `db` (PostgreSQL 16), volume persistente e `healthcheck`. **Ainda não existe nada disso no projeto.**
+
+## Versionamento
+
+O projeto é um repositório Git com branch padrão `main` e remoto público:
+
+```text
+https://github.com/marcusvgcruz/tallyora
+```
+
+Fluxo:
+
+```bash
+git add -A
+git commit -m "mensagem"
+git push
+```
+
+**Não versionados** (por `.gitignore`): `venv/`, `__pycache__/`, `db.sqlite3`, `.env`, arquivos de cobertura e caches de ferramentas. Antes de commitar, confirme com `git status` que nada disso aparece na lista.
 
 ## Comandos úteis
 
