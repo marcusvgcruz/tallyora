@@ -67,6 +67,7 @@ tallyora/
 | Cálculo | `transactions/services.py`, `investments/services.py`, `reminders/services.py` | Regra de negócio fora das views (ver `05-regras-de-negocio-financeiras.md`) |
 | Efeitos colaterais | `<app>/signals.py` | Registrados no `ready()` do `apps.py` |
 | Templates | `templates/` | DTL, herdam de `base.html` (área logada) ou `base_public.html` (pública) |
+| Organização dos templates | `templates/<app>/` | uma pasta por app dentro de `templates/` na raiz (ver nota abaixo) |
 
 > **Por que existe `core/root_urls.py`:** o namespace `core:` é criado pelo `include('core.urls')`. Colocar `app_name` direto no `ROOT_URLCONF` **não** registra namespace (verificado na prática: resulta em `NoReverseMatch`). Por isso o root é um arquivo separado e `core/urls.py` continua sendo a URLconf da app.
 
@@ -90,6 +91,25 @@ Valores presentes hoje no arquivo:
 - `STATICFILES_DIRS` só é populado quando a pasta `static/` existe.
 - `MAILERS`: backend de e-mail no console (permite testar recuperação de senha sem SMTP).
 - `DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'`.
+
+## Nota: por que os templates ficam todos em `templates/`
+
+A convenção mais citada do Django é `app/templates/app/arquivo.html` (app dirs). Aqui os
+templates ficam em `templates/<app>/` na raiz, com `TEMPLATES.DIRS` apontando para ela.
+
+- **Namespacing preservado:** a pasta interna continua sendo o nome da app
+  (`goals_events/`, `investments/`), então `get_template('goals_events/event_list.html')`
+  não colide com nenhuma outra app — é o mesmo contrato, só centralizado.
+- **UI em um só lugar:** `base.html`, `base_public.html` e `partials/` são compartilhados por
+  todas as apps; com app dirs seria preciso um app "core" falso ou duplicação.
+- **Fronteira de trabalho:** permitiu separar quem mexe em `.py` de quem mexe em HTML nas
+  sprints executadas em paralelo (arquivos disjuntos, zero conflito).
+- **Precedência:** `DIRS` vem antes de `APP_DIRS`, então um template central pode sobrescrever
+  o de um app de terceiros (ex.: páginas do admin) sem tocar no pacote instalado.
+
+Quando vale migrar para app dirs: se alguma app virar reutilizável em outro projeto (aí ela
+precisa carregar o próprio template) ou se o time crescer a ponto de a modularidade pesar mais
+que a visão única. O PRD não exige uma das duas.
 
 ## Rotas publicadas
 
