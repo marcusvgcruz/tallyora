@@ -61,20 +61,20 @@
 
 ---
 
-### Sprint 4: Administrador de Eventos (Casamento / Viagens) e Carteira de Investimentos P3X
-- [ ] **4.1. Módulo Administrador de Eventos (`goals_events`)**
-  - [ ] **4.1.1.** Criar o model `EventPlan(BaseModel)` em `goals_events/models.py` com `title` (ex: Casamento, Viagem), `event_date`, `already_saved_amount`, `monthly_contribution_type` (`PERCENTAGE`, `FIXED`), `monthly_contribution_value` e vínculo opcional com `GoalBox`.
-  - [ ] **4.1.2.** Criar o model `EventExpenseItem(BaseModel)` em `goals_events/models.py` vinculado ao `EventPlan` com `supplier_name` (ex: Assessoria, Buffet, Hospedagem), `category_name`, `total_cost`, `amount_paid`, `payment_status` (`PENDING`, `PARTIAL`, `PAID`) e properties `remaining_amount` (`total_cost - amount_paid`).
-  - [ ] **4.1.3.** Integrar o `monthly_contribution_value` dos eventos ativos ao `FinancialCalculationService` para que apareça automaticamente como separador/compromisso na tela principal do salário.
-  - [ ] **4.1.4.** Implementar `EventPlanListView`, `EventPlanCreateView`, `EventPlanDetailView`, `EventExpenseItemCreateView`, `EventExpenseItemUpdateView` e `EventExpenseItemDeleteView` em `goals_events/views.py`.
-  - [ ] **4.1.5.** Criar o template `goals_events/event_detail.html` exibindo os cards de resumo do evento (Custo Total do Evento, Total Já Pago, Falta Pagar, Total Já Guardado, Quanto Falta Guardar) e a tabela detalhada de fornecedores.
-- [ ] **4.2. Carteira de Investimentos Inspirada na P3X (`investments`)**
-  - [ ] **4.2.1.** Criar o model `AssetAllocationTarget(BaseModel)` em `investments/models.py` para definir a meta percentual de cada classe (`FII`, `STOCK`, `FIXED_INCOME`, `CRYPTO`).
-  - [ ] **4.2.2.** Criar o model `InvestmentAsset(BaseModel)` em `investments/models.py` com `asset_class`, `ticker`, `name`, `quantity`, `average_price`, `current_price`, `target_percentage_in_class` e `last_quote_update`.
-  - [ ] **4.2.3.** Implementar properties de cálculo no model `InvestmentAsset`: `total_invested` (`quantity * average_price`), `current_total_value` (`quantity * current_price`), `profit_loss_amount` e `profit_loss_percentage`.
-  - [ ] **4.2.4.** Criar o serviço `QuoteUpdaterService` em `investments/services.py` utilizando a API gratuita `brapi.dev` (ou `yfinance`) para buscar as cotações atuais dos tickers de Ações e FIIs na B3 e atualizar `current_price` e `last_quote_update`.
-  - [ ] **4.2.5.** Implementar `PortfolioDashboardView(LoginRequiredMixin, TemplateView)`, `AssetCreateView`, `AssetUpdateView`, `AssetDeleteView` e `RefreshQuotesView(LoginRequiredMixin, View)` em `investments/views.py`.
-  - [ ] **4.2.6.** Construir o template `investments/portfolio.html` inspirado na plataforma P3X: cards de Patrimônio Total, Lucro/Prejuízo, gráfico de rosca da divisão atual vs meta por classe, e abas/tabelas separadas para FIIs, Ações e Renda Fixa com indicação de onde aportar.
+### Sprint 4: Administrador de Eventos (Casamento / Viagens) e Carteira de Investimentos P3X — [x] CONCLUÍDA
+- [X] **4.1. Módulo Administrador de Eventos (`goals_events`)**
+  - [X] **4.1.1.** Criar o model `EventPlan(BaseModel)` em `goals_events/models.py` com `title` (ex: Casamento, Viagem), `event_date`, `already_saved_amount`, `monthly_contribution_type` (`PERCENTAGE`, `FIXED`), `monthly_contribution_value` e vínculo opcional com `GoalBox`.
+  - [X] **4.1.2.** Criar o model `EventExpenseItem(BaseModel)` em `goals_events/models.py` vinculado ao `EventPlan` com `supplier_name` (ex: Assessoria, Buffet, Hospedagem), `category_name`, `total_cost`, `amount_paid`, `payment_status` (`PENDING`, `PARTIAL`, `PAID`) e properties `remaining_amount` (`total_cost - amount_paid`).
+  - [X] **4.1.3.** Integrar o `monthly_contribution_value` dos eventos ativos ao `FinancialCalculationService` para que apareça automaticamente como separador/compromisso na tela principal do salário.
+  - [X] **4.1.4.** Implementar `EventPlanListView`, `EventPlanCreateView`, `EventPlanDetailView`, `EventExpenseItemCreateView`, `EventExpenseItemUpdateView` e `EventExpenseItemDeleteView` em `goals_events/views.py`.
+  - [X] **4.1.5.** Criar o template `goals_events/event_detail.html` exibindo os cards de resumo do evento (Custo Total do Evento, Total Já Pago, Falta Pagar, Total Já Guardado, Quanto Falta Guardar) e a tabela detalhada de fornecedores.
+- [X] **4.2. Carteira de Investimentos Inspirada na P3X (`investments`)**
+  - [X] **4.2.1.** Criar o model `AssetAllocationTarget(BaseModel)` em `investments/models.py` para definir a meta percentual de cada classe (`FII`, `STOCK`, `FIXED_INCOME`, `CRYPTO`).
+  - [X] **4.2.2.** Criar o model `InvestmentAsset(BaseModel)` em `investments/models.py` com `asset_class`, `ticker`, `name`, `quantity`, `average_price`, `current_price`, `target_percentage_in_class` e `last_quote_update`.
+  - [X] **4.2.3.** Implementar properties de cálculo no model `InvestmentAsset`: `total_invested` (`quantity * average_price`), `current_total_value` (`quantity * current_price`), `profit_loss_amount` e `profit_loss_percentage`.
+  - [X] **4.2.4.** Criar o serviço `QuoteUpdaterService` em `investments/services.py` utilizando a API gratuita `brapi.dev` (ou `yfinance`) para buscar as cotações atuais dos tickers de Ações e FIIs na B3 e atualizar `current_price` e `last_quote_update`.
+  - [X] **4.2.5.** Implementar `PortfolioDashboardView(LoginRequiredMixin, TemplateView)`, `AssetCreateView`, `AssetUpdateView`, `AssetDeleteView` e `RefreshQuotesView(LoginRequiredMixin, View)` em `investments/views.py`.
+  - [X] **4.2.6.** Construir o template `investments/portfolio.html` inspirado na plataforma P3X: cards de Patrimônio Total, Lucro/Prejuízo, gráfico de rosca da divisão atual vs meta por classe, e abas/tabelas separadas para FIIs, Ações e Renda Fixa com indicação de onde aportar.
 
 ---
 

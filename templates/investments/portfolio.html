@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title|default:'Investimentos P3X' }} — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">{{ title|default:'Investimentos P3X' }}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        A carteira no método P3X: meta por classe, peso ideal de cada ativo e o indicador de
+        <span class="font-medium text-slate-200">Aportar</span> ou <span class="font-medium text-slate-200">Aguardar</span>.
+      </p>
+      <p class="mt-1 text-xs text-slate-500 tabular-nums">
+        {% if last_quote_update %}
+          Última atualização de cotação: {{ last_quote_update|date:"d/m/Y H:i" }}
+        {% else %}
+          Nenhuma cotação atualizada ainda — os valores usam o preço atual cadastrado em cada ativo.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <form method="post" action="{% url 'investments:refresh_quotes' %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 11-3-6.7"></path>
+            <path d="M21 3v6h-6"></path>
+          </svg>
+          Atualizar cotações
+        </button>
+      </form>
+      <a href="{% url 'investments:asset_create' %}"
+         class="inline-flex w-fit items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+        Novo ativo
+      </a>
+    </div>
+  </div>
+
+  {# ---------- KPIs ---------- #}
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% with valor=total_value|floatformat:"2g" %}
+      {% include 'partials/_card_kpi.html' with label='Patrimônio Total' value='R$ '|add:valor tone='neutral' %}
+    {% endwith %}
+    {% with valor=total_invested|floatformat:"2g" %}
+      {% include 'partials/_card_kpi.html' with label='Total Investido' value='R$ '|add:valor tone='info' %}
+    {% endwith %}
+
+    <div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+      <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Lucro / Prejuízo</span>
+      <div class="mt-2 flex flex-wrap items-baseline gap-2">
+        <span class="text-2xl font-bold tabular-nums {% if profit_loss_amount < 0 %}text-rose-400{% else %}text-emerald-400{% endif %}">
+          {% if profit_loss_amount < 0 %}− {% endif %}R$ {{ profit_loss_amount|floatformat:"2g" }}
+        </span>
+        <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums
+          {% if profit_loss_percentage < 0 %}border-rose-500/20 bg-rose-500/10 text-rose-400
+          {% else %}border-emerald-500/20 bg-emerald-500/10 text-emerald-400{% endif %}">
+          {% if profit_loss_percentage < 0 %}− {% endif %}{{ profit_loss_percentage|floatformat:"2g" }}%
+        </span>
+      </div>
+      <span class="mt-1 text-xs text-slate-500">sobre R$ {{ total_invested|floatformat:"2g" }} investidos</span>
+    </div>
+  </div>
+
+  {% if assets %}
+    {# ---------- Gráfico de rosca + resumo por classe ---------- #}
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-5">
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md lg:col-span-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-base font-semibold text-slate-100">Divisão atual vs. meta</h2>
+          <span class="text-xs text-slate-500">Anel interno: atual · anel externo: meta</span>
+        </div>
+
+        <div class="mt-4 h-72">
+          <canvas id="portfolio-chart" role="img"
+                  aria-label="Gráfico de rosca comparando a divisão atual da carteira com a meta por classe de ativo"></canvas>
+        </div>
+
+        <noscript>
+          <p class="mt-4 rounded-xl border border-slate-800 bg-slate-800/60 px-4 py-3 text-xs text-slate-400">
+            O gráfico precisa de JavaScript. A comparação entre divisão atual e meta continua disponível no resumo ao lado.
+          </p>
+        </noscript>
+      </div>
+
+      <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md lg:col-span-2">
+        <h2 class="text-base font-semibold text-slate-100">Resumo por classe</h2>
+        <p class="mt-1 text-xs text-slate-500">Quanto cada classe representa hoje e onde deveria chegar.</p>
+
+        <ul class="mt-4 space-y-3">
+          {% for row in class_summary %}
+            <li class="rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-2.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="truncate text-sm font-medium text-slate-200">{{ row.label }}</span>
+                {% if row.badge == 'APORTAR' %}
+                  <span class="inline-flex shrink-0 items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">Aportar</span>
+                {% else %}
+                  <span class="inline-flex shrink-0 items-center rounded-full border border-slate-700 bg-slate-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">Aguardar</span>
+                {% endif %}
+              </div>
+              <div class="mt-1.5 flex items-center justify-between gap-2 text-xs tabular-nums">
+                <span class="text-slate-400">
+                  Atual <span class="font-semibold text-cyan-400">{{ row.current_percentage|floatformat:"2g" }}%</span>
+                  · Meta <span class="font-semibold text-slate-200">{{ row.target_percentage|floatformat:"2g" }}%</span>
+                </span>
+                <span class="{% if row.diff_percentage < 0 %}text-rose-400{% elif row.diff_percentage > 0 %}text-emerald-400{% else %}text-slate-500{% endif %}">
+                  {% if row.diff_percentage > 0 %}+{% endif %}{{ row.diff_percentage|floatformat:"2g" }} p.p.
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-slate-500 tabular-nums">R$ {{ row.current_value|floatformat:"2g" }}</p>
+            </li>
+          {% empty %}
+            <li class="text-sm text-slate-400">Defina as metas por classe para comparar com a divisão atual.</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% else %}
+    {% url 'investments:asset_create' as criar_ativo_url %}
+    <div class="mt-6">
+      {% include 'partials/_empty_state.html' with title='Nenhum ativo na carteira' description='Cadastre seus FIIs, ações, renda fixa e cripto para ver o patrimônio, o lucro por ativo e o que aportar em cada classe.' action_url=criar_ativo_url action_label='Novo ativo' %}
+    </div>
+  {% endif %}
+
+  {# ---------- Metas por classe (formset) ---------- #}
+  <div id="metas" class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-base font-semibold text-slate-100">Metas por classe</h2>
+        <p class="mt-1 text-sm text-slate-400">
+          A meta é o peso ideal de cada classe no patrimônio. A soma das metas precisa fechar 100%.
+        </p>
+      </div>
+      <div class="rounded-xl border border-slate-800 bg-slate-800/60 px-4 py-2 text-right">
+        <span class="block text-[11px] font-medium uppercase tracking-wider text-slate-500">Soma das metas</span>
+        <span id="metas-total" class="mt-0.5 block text-lg font-bold tabular-nums {% if allocation_missing > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">
+          {{ allocation_total|floatformat:"2g" }}%
+        </span>
+      </div>
+    </div>
+
+    <div id="metas-aviso"
+         class="mt-4 items-start gap-3 rounded-xl border px-4 py-3 {% if allocation_missing > 0 %}flex border-amber-500/20 bg-amber-500/10{% else %}hidden border-amber-500/20 bg-amber-500/10{% endif %}">
+      <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 9v4M12 17h.01"></path>
+        <path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"></path>
+      </svg>
+      <p class="text-sm text-slate-300">
+        <span class="font-medium text-amber-400">Alocação incompleta:</span>
+        faltam <span id="metas-faltando" class="font-semibold tabular-nums">{{ allocation_missing|floatformat:"2g" }}%</span>
+        para fechar 100%. Enquanto isso, o indicador de aporte usa as metas já configuradas.
+      </p>
+    </div>
+
+    <form method="post" action="{% url 'investments:targets' %}" class="mt-5">
+      {% csrf_token %}
+      {{ allocation_formset.management_form }}
+
+      {% if allocation_formset.non_form_errors %}
+        <div class="mb-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3">
+          {% for error in allocation_formset.non_form_errors %}
+            <p class="text-sm text-rose-400">{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {% for form in allocation_formset %}
+          <div class="rounded-2xl border border-slate-800 bg-slate-800/40 p-4">
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+
+            <div class="space-y-3">
+              {% for field in form.visible_fields %}
+                {% include 'partials/_form_field.html' with field=field %}
+              {% endfor %}
+            </div>
+
+            {% for error in form.non_field_errors %}
+              <p class="mt-2 text-xs font-medium text-rose-400">{{ error }}</p>
+            {% endfor %}
+
+            {% if form.instance.pk %}
+              <label class="mt-3 flex items-center gap-2 text-xs text-slate-400 [&_input]:h-4 [&_input]:w-4 [&_input]:accent-emerald-500">
+                {{ form.DELETE }} Remover esta meta
+              </label>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mt-5 flex flex-col-reverse gap-3 border-t border-slate-800 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-xs text-slate-500">
+          As metas valem para toda a carteira. Salvar as metas não altera os ativos já cadastrados.
+        </p>
+        <button type="submit"
+                class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          Salvar metas
+        </button>
+      </div>
+    </form>
+  </div>
+
+  {# ---------- Tabelas por classe ---------- #}
+  {% for row in class_summary %}
+    <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-5 py-4">
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="text-base font-semibold text-slate-100">{{ row.label }}</h2>
+          {% if row.badge == 'APORTAR' %}
+            <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">Aportar</span>
+          {% else %}
+            <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">Aguardar</span>
+          {% endif %}
+        </div>
+        <p class="text-xs text-slate-400 tabular-nums">
+          R$ {{ row.current_value|floatformat:"2g" }}
+          · <span class="text-cyan-400">{{ row.current_percentage|floatformat:"2g" }}%</span> atual
+          · meta <span class="text-slate-200">{{ row.target_percentage|floatformat:"2g" }}%</span>
+        </p>
+      </div>
+
+      {% if row.current_value > 0 %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+            <caption class="sr-only">Ativos da classe {{ row.label }}</caption>
+            <thead class="bg-slate-900/60">
+              <tr>
+                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Ticker</th>
+                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Nome</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Qtd.</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Preço médio</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Preço atual</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Investido</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Valor atual</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Lucro / Prejuízo</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Peso ideal</th>
+                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Indicador</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              {% for asset in assets %}
+                {% if asset.asset_class == row.asset_class %}
+                  <tr class="transition-colors hover:bg-slate-800/40">
+                    <td class="whitespace-nowrap px-5 py-4">
+                      <span class="font-semibold text-slate-100">{{ asset.ticker }}</span>
+                      {% if not asset.is_quoted %}
+                        <span class="ml-2 inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">manual</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="px-5 py-4 text-slate-400">
+                      <span class="block max-w-56 truncate">{{ asset.name|default:"—" }}</span>
+                    </td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-300">{{ asset.quantity|floatformat:"-8" }}</td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-300">R$ {{ asset.average_price|floatformat:"2g" }}</td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-100">R$ {{ asset.current_price|floatformat:"2g" }}</td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-300">R$ {{ asset.total_invested|floatformat:"2g" }}</td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums text-slate-100">R$ {{ asset.current_total_value|floatformat:"2g" }}</td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums">
+                      {% if asset.profit_loss_amount < 0 %}
+                        <span class="block font-semibold text-rose-400">− R$ {{ asset.profit_loss_amount|floatformat:"2g" }}</span>
+                        <span class="block text-xs text-rose-400">− {{ asset.profit_loss_percentage|floatformat:"2g" }}%</span>
+                      {% elif asset.profit_loss_amount > 0 %}
+                        <span class="block font-semibold text-emerald-400">+ R$ {{ asset.profit_loss_amount|floatformat:"2g" }}</span>
+                        <span class="block text-xs text-emerald-400">+ {{ asset.profit_loss_percentage|floatformat:"2g" }}%</span>
+                      {% else %}
+                        <span class="block font-medium text-slate-400">R$ {{ asset.profit_loss_amount|floatformat:"2g" }}</span>
+                        <span class="block text-xs text-slate-500">{{ asset.profit_loss_percentage|floatformat:"2g" }}%</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-300">{{ asset.target_percentage_in_class|floatformat:"2g" }}%</td>
+
+                    <td class="whitespace-nowrap px-5 py-4">
+                      {% if row.current_value > 0 %}
+                        {% widthratio asset.current_total_value row.current_value 100 as peso_atual %}
+                      {% endif %}
+                      {% if peso_atual|add:"0" < asset.target_percentage_in_class %}
+                        <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">Aportar</span>
+                      {% else %}
+                        <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-400">Aguardar</span>
+                      {% endif %}
+                    </td>
+
+                    <td class="whitespace-nowrap px-5 py-4">
+                      <div class="flex items-center justify-end gap-2">
+                        <a href="{% url 'investments:asset_update' asset.pk %}"
+                           class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                           aria-label="Editar ativo {{ asset.ticker }}">
+                          Editar
+                        </a>
+                        <a href="{% url 'investments:asset_delete' asset.pk %}"
+                           class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                           aria-label="Excluir ativo {{ asset.ticker }}">
+                          Excluir
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="px-5 py-4 text-xs text-slate-500">
+          Nenhum ativo cadastrado nesta classe ainda — use “Novo ativo” para começar.
+        </p>
+      {% endif %}
+    </section>
+  {% endfor %}
+
+  {{ chart_data|json_script:"portfolio-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/chart.umd.min.js' %}"></script>
+  <script>
+    (function () {
+      var dataNode = document.getElementById('portfolio-chart-data');
+      var canvas = document.getElementById('portfolio-chart');
+
+      function toNumbers(values) {
+        return (values || []).map(function (value) {
+          var parsed = Number(String(value).replace(',', '.'));
+          return isFinite(parsed) ? parsed : 0;
+        });
+      }
+
+      function formatNumber(value) {
+        try {
+          return Number(value).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          });
+        } catch (error) {
+          return String(value);
+        }
+      }
+
+      if (dataNode && canvas && typeof Chart !== 'undefined') {
+        var raw = JSON.parse(dataNode.textContent || '{}');
+        var palette = ['#22d3ee', '#10b981', '#6366f1', '#f59e0b', '#f43f5e', '#a855f7'];
+
+        new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: raw.labels || [],
+            datasets: [
+              {
+                label: 'Divisão atual',
+                data: toNumbers(raw.current),
+                backgroundColor: palette,
+                borderColor: '#020617',
+                borderWidth: 2,
+                hoverOffset: 4
+              },
+              {
+                label: 'Meta',
+                data: toNumbers(raw.target),
+                backgroundColor: palette.map(function (color) { return color + '80'; }),
+                borderColor: '#020617',
+                borderWidth: 2,
+                hoverOffset: 4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '45%',
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#94a3b8',
+                  boxWidth: 10,
+                  boxHeight: 10,
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  padding: 14,
+                  font: { size: 11 }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#1e293b',
+                borderWidth: 1,
+                titleColor: '#e2e8f0',
+                bodyColor: '#cbd5e1',
+                callbacks: {
+                  label: function (context) {
+                    return ' ' + context.dataset.label + ': ' + formatNumber(context.parsed) + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Soma das metas em tempo real (o servidor envia o valor inicial).
+      var somaNode = document.getElementById('metas-total');
+      var avisoNode = document.getElementById('metas-aviso');
+      var faltandoNode = document.getElementById('metas-faltando');
+      var inputs = document.querySelectorAll('input[name$="target_percentage"]');
+
+      function recalcular() {
+        var total = 0;
+        inputs.forEach(function (input) {
+          var value = parseFloat(String(input.value).replace(',', '.'));
+          if (isFinite(value)) { total += value; }
+        });
+        if (somaNode) {
+          somaNode.textContent = formatNumber(total) + '%';
+          somaNode.classList.toggle('text-amber-400', total < 99.995);
+          somaNode.classList.toggle('text-emerald-400', total >= 99.995);
+        }
+        if (avisoNode && faltandoNode && total < 99.995) {
+          avisoNode.classList.remove('hidden');
+          avisoNode.classList.add('flex');
+          faltandoNode.textContent = formatNumber(100 - total) + '%';
+        } else if (avisoNode) {
+          avisoNode.classList.add('hidden');
+          avisoNode.classList.remove('flex');
+        }
+      }
+
+      inputs.forEach(function (input) {
+        input.addEventListener('input', recalcular);
+      });
+    })();
+  </script>
+{% endblock %}

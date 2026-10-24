@@ -33,9 +33,16 @@ if not SECRET_KEY:
         'SECRET_KEY is not set. Define it in the .env file.'
     )
 
-DEBUG = env_bool('DEBUG')
+# Ambiente de execução: ``dev`` usa SQLite; ``prd`` usa PostgreSQL.
+APP_ENV = (os.environ.get('APP_ENV') or 'dev').strip().lower()
+if APP_ENV not in ('dev', 'prd'):
+    raise ImproperlyConfigured(
+        "APP_ENV must be 'dev' or 'prd'. Received: " f'{APP_ENV!r}'
+    )
 
-ALLOWED_HOSTS = env_list('ALLOWED_HOSTS')
+DEBUG = env_bool('DEBUG', default=APP_ENV == 'dev')
+
+ALLOWED_HOSTS = env_list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
 
 # Application definition
@@ -93,16 +100,24 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'tallyora'),
-        'USER': os.environ.get('DB_USER', 'tallyora'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    },
-}
+if APP_ENV == 'prd':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'tallyora'),
+            'USER': os.environ.get('DB_USER', 'tallyora'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        },
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
+    }
 
 
 # Authentication

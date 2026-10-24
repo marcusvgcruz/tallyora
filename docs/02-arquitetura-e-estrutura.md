@@ -34,7 +34,8 @@ tallyora/
 │   ├── accounts/           # account_list, account_form, account_confirm_delete
 │   ├── categories/         # category_list, category_form, category_confirm_delete
 │   ├── transactions/       # transaction_list|form|confirm_delete, recurring_*
-│   ├── goals_events/       # goalbox_list|form|confirm_delete
+│   ├── goals_events/       # caixinhas + eventos (list|form|detail|confirmações)
+│   ├── investments/        # portfolio|asset_form|asset_confirm_delete
 │   └── partials/           # _card_kpi, _empty_state, _modal_confirm_delete, _form_field
 ├── theme/                  # app do django-tailwind: fonte (static_src) e CSS compilado
 │   └── static/css/dist/styles.css   # saída do build (versionada)
@@ -45,7 +46,8 @@ tallyora/
 ├── accounts/               # app de contas e cartões
 ├── categories/             # app de categorias
 ├── transactions/           # app de transações, despesas fixas e motor de cálculo
-├── goals_events/           # app de caixinhas (eventos entram na Sprint 4)
+├── goals_events/           # app de caixinhas e eventos (EventPlan, EventExpenseItem)
+├── investments/            # app da carteira P3X (ativos, metas, cotações)
 ├── investments/            # app de carteira
 └── reminders/              # app de lembretes
 ```
@@ -57,7 +59,7 @@ tallyora/
 | Camada | Arquivo | Regra |
 | :--- | :--- | :--- |
 | Configuração | `core/settings.py` | Única fonte de configuração; lê o `.env` via `python-dotenv` |
-| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/` e inclui as URLconfs das apps com prefixo (`perfil/`, `contas/`, `categorias/`, `transacoes/`, `caixinhas/`) |
+| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/` e inclui as URLconfs das apps com prefixo (`perfil/`, `contas/`, `categorias/`, `transacoes/`, `caixinhas/`, `investimentos/`) |
 | Rotas de app | `<app>/urls.py` | Arquivo por app com `app_name`; rotas nomeadas (`core:dashboard`, `core:landing`) |
 | Regras de dados | `<app>/models.py` | Todo model herda de `BaseModel`; campos em inglês |
 | Entrada de dados | `<app>/forms.py` | `ModelForm`/`Form` com validação em `clean()` e widgets estilizados via Tailwind |
@@ -122,8 +124,22 @@ Valores presentes hoje no arquivo:
 | `/caixinhas/nova/` | `goals:create` | `GoalBoxCreateView` | autenticado |
 | `/caixinhas/<pk>/editar/` | `goals:update` | `GoalBoxUpdateView` | autenticado |
 | `/caixinhas/<pk>/excluir/` | `goals:delete` | `GoalBoxDeleteView` | autenticado (**POST**) |
+| `/caixinhas/eventos/` | `goals:event_list` | `EventPlanListView` | autenticado |
+| `/caixinhas/eventos/novo/` | `goals:event_create` | `EventPlanCreateView` | autenticado |
+| `/caixinhas/eventos/<pk>/` | `goals:event_detail` | `EventPlanDetailView` | autenticado |
+| `/caixinhas/eventos/<pk>/editar/` | `goals:event_update` | `EventPlanUpdateView` | autenticado |
+| `/caixinhas/eventos/<pk>/excluir/` | `goals:event_delete` | `EventPlanDeleteView` | autenticado (**POST**) |
+| `/caixinhas/eventos/<event_pk>/itens/novo/` | `goals:item_create` | `EventExpenseItemCreateView` | autenticado |
+| `/caixinhas/itens/<pk>/editar/` | `goals:item_update` | `EventExpenseItemUpdateView` | autenticado |
+| `/caixinhas/itens/<pk>/excluir/` | `goals:item_delete` | `EventExpenseItemDeleteView` | autenticado (**POST**) |
+| `/investimentos/` | `investments:portfolio` | `PortfolioDashboardView` | autenticado |
+| `/investimentos/novo/` | `investments:asset_create` | `AssetCreateView` | autenticado |
+| `/investimentos/<pk>/editar/` | `investments:asset_update` | `AssetUpdateView` | autenticado |
+| `/investimentos/<pk>/excluir/` | `investments:asset_delete` | `AssetDeleteView` | autenticado (**POST**) |
+| `/investimentos/cotacoes/atualizar/` | `investments:refresh_quotes` | `RefreshQuotesView` | autenticado (**POST**) |
+| `/investimentos/metas/` | `investments:targets` | `AllocationTargetUpdateView` | autenticado (**POST**) |
 
-`Todo `.py` de dados (contas, categorias, descontos, transações, despesas fixas e caixinhas) usa `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
+`Todo `.py` de dados (contas, categorias, descontos, transações, despesas fixas, caixinhas, eventos e ativos) usa `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
 
 Ainda **não existem**: `/investments/`, `/events/`, `/reminders/` — são das sprints 4 e 5. O PRD cita `/profile/setup/` como onboarding; o projeto expõe a edição do perfil em `/perfil/` (o onboarding não é tarefa do backlog).
 

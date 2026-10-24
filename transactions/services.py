@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from core.models import ZERO, to_money
-from goals_events.models import GoalBox
+from goals_events.models import EventPlan, GoalBox
 from profiles.models import UserProfile
 from transactions.models import RecurringExpense, Transaction
 
@@ -161,7 +161,7 @@ class FinancialCalculationService:
         investment = self._investment_allocation(profile, net_income)
         available_for_boxes = to_money(balance_after_expenses - investment)
         boxes, boxes_total = self._goal_box_contributions(available_for_boxes)
-        events_total = self._event_contributions()
+        events, events_total = self._event_contributions(net_income)
 
         free_balance = to_money(
             available_for_boxes - boxes_total - events_total
@@ -181,6 +181,7 @@ class FinancialCalculationService:
             'recurring_expenses': recurring,
             'transactions': transactions,
             'goal_boxes': boxes,
+            'event_plans': events,
             'has_credit_card_bill_entry': any(
                 item.is_card_bill for item in transactions
             ),
@@ -326,18 +327,22 @@ class FinancialCalculationService:
                 total = to_money(total + contribution)
         return contributions, total
 
-    def _event_contributions(self):
+    def _event_contributions(self, net_income):
         """Monthly contributions of active event plans.
 
-        ``EventPlan`` is a Sprint 4 model; until it exists the leg
-        contributes zero and the rest of the calculation is unaffected.
+        Percentage plans take their share of ``net_income`` (the same
+        base used by the investment allocation); fixed plans take their
+        value. Inactive plans are skipped and every plan is deducted
+        once, after the savings boxes.
         """
-        try:
-            from goals_events.models import EventPlan
-        except ImportError:
-            return ZERO
         plans = EventPlan.objects.filter(user=self.user, is_active=True)
+        contributions = []
         total = ZERO
         for plan in plans:
-            total = to_money(total + plan.monthly_contribution())
-        return total
+            contribution = plan.monthly_contribution(net_income)
+            if contribution > ZERO:
+                contributions.append(
+                    {'plan': plan, 'contribution': contribution}
+                )
+                total = to_money(total + contribution)
+        return contributions, total

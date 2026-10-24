@@ -72,11 +72,13 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
   - **Total Já Pago** = soma de `amount_paid`.
   - **Falta Pagar** = soma de `remaining_amount`.
   - **Quanto Falta Guardar** = Falta Pagar − `already_saved_amount` (se positivo).
-- O status do item deve ser coerente com o valor pago: `PAID` só com `amount_paid == total_cost`, `PENDING` com `amount_paid == 0`.
+- O status do item é **derivado**, não digitado: `save()` normaliza para `PENDING` com `amount_paid == 0`, `PAID` com `amount_paid == total_cost` e `PARTIAL` no meio. Pagar mais que o custo é barrado no `clean()`.
+- **Base do percentual:** quando `monthly_contribution_type = PERCENTAGE`, o aporte é `percentual × receita líquida`, a mesma base usada pela alocação de investimentos — não o que sobrou do mês. `FIXED` usa o valor cheio.
+- Implementado na Sprint 4 em `goals_events/models.py` e no passo 7 do motor (ver §9).
 
 ## 6. Carteira de investimentos (RF13 / RF14 / US05)
 
-- **Metas por classe:** `AssetAllocationTarget` define o `%` ideal por classe (`FII`, `STOCK`, `FIXED_INCOME`, `CRYPTO`). A soma das metas deve validar exatamente **100%**.
+- **Metas por classe:** `AssetAllocationTarget` define o `%` ideal por classe (`FII`, `STOCK`, `FIXED_INCOME`, `CRYPTO`). A soma das metas deve fechar **100%**; o `clean()` bloqueia qualquer configuração que **passe** de 100% (R04) e a tela mostra quanto falta para fechar quando está abaixo — bloquear a soma parcial impediria cadastrar uma classe por vez.
 - **Meta por ativo:** `target_percentage_in_class` define o peso do ativo dentro da própria classe.
 - **Cálculos por ativo:**
   - `total_invested = quantity × average_price`
@@ -84,7 +86,11 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
   - `profit_loss_amount = current_total_value − total_invested`
   - `profit_loss_percentage = profit_loss_amount / total_invested × 100`
   - `% atual na carteira` comparado com `% ideal` → badge `Aportar` (abaixo da meta) ou `Aguardar` (na meta ou acima).
-- **Cotações:** atualizadas por serviço (`QuoteUpdaterService`) via `brapi.dev` ou `yfinance`, acionado por botão/ação "Atualizar Cotações", gravando `current_price` e `last_quote_update`.
+- **Cotações:** atualizadas pelo `QuoteUpdaterService`, acionado pelo botão "Atualizar cotações", gravando `current_price` e `last_quote_update`. Três fontes, nesta ordem:
+  1. **B3 oficial** (`cotacao.b3.com.br/mds/api/v1/DailyFluctuationHistory/{ticker}`) — sem chave, é a fonte primária; devolve o último preço negociado.
+  2. **brapi.dev** — usada só quando `BRAPI_TOKEN` está no `.env` (o plano gratuito exige token; sem ele a API responde 401). Até 10 tickers por chamada.
+  3. **Yahoo Finance** — último recurso, um request por ticker.
+- **Por que a B3 primeiro:** brapi sem token responde 401 e o Yahoo devolve 429 para IPs de servidor. Só a API oficial funciona sem cadastro — validado com cotações reais (PETR4, MXRF11, VALE3, ITSA4) nesta VPS.
 - **Fallback obrigatório (R01):** se a API falhar ou estourar *rate limit*, manter a última cotação válida no banco e permitir edição manual de `current_price`. Renda Fixa é atualizada manualmente.
 
 ## 7. Alocação para investimentos no perfil (RF06)
@@ -112,4 +118,6 @@ Sequência que o `FinancialCalculationService` (`transactions/services.py`) exec
 
 Nenhum valor pode ser abatido duas vezes; toda soma deve ser rastreável ao lançamento de origem.
 
-Implementado na Sprint 3: passos 1 a 7 com receita, gastos, fatura, investimentos e caixinhas. O passo 7 ainda contribui `0` em eventos porque `EventPlan` é model da Sprint 4 — o método `_event_contributions()` já está no lugar e passa a somar quando o model existir.
+Implementado nas Sprints 3 e 4: passos 1 a 8 completos. O passo 7 abate as caixinhas (sequenciais, ordem alfabética) e depois os aportes dos `EventPlan` ativos; o resumo devolve `goal_boxes` e `event_plans` com o detalhe de cada compromisso, para a tela poder mostrar de onde veio cada abatimento.
+
+Ordem dentro do passo 7: caixinhas primeiro (elas são reserva do dia a dia), eventos depois (compromissos com data). Como o aporte percentual de evento usa a receita líquida e não o saldo corrente, a ordem não altera o valor de cada aporte — só a leitura do saldo final.

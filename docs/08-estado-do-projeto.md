@@ -2,7 +2,7 @@
 
 Retrato do que existe em disco hoje (24/10/2026), verificado no código e no banco. O backlog completo e atualizado está em `../TASKS.md`.
 
-**Sprints 1, 2 e 3 concluídas.** Na Sprint 3 foram fechadas as sub-tarefas 3.1.1 a 3.1.4, 3.2.1 a 3.2.3 e 3.3.1 a 3.3.4.
+**Sprints 1 a 4 concluídas.** Sprint 4 fechou 4.1.1 a 4.1.5 (eventos) e 4.2.1 a 4.2.6 (carteira P3X). Restam as Sprints 5 (dashboard + lembretes) e 6 (testes, PEP8, Docker).
 
 ## Implementado
 
@@ -25,6 +25,15 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 | `Transaction` (3.1.2) | receita/despesa/fatura do cartão, `reference_date`, `is_on_credit_card`, `is_paid` |
 | Filtros de período (3.1.4) | `transactions:list` aceita `mes`, `ano` e `periodo` (`full`/`first`/`second`), com totais de receita, despesa e fatura |
 | `GoalBox` (3.2.1 / 3.2.2) | caixinha com alocação percentual ou fixa, saldo, meta, `progress_percentage` e `calculate_period_contribution()` |
+| `EventPlan` (4.1.1) | evento com data, já guardado, aporte mensal percentual ou fixo, vínculo opcional com caixinha e `is_active` |
+| `EventExpenseItem` (4.1.2) | fornecedor do evento com custo, pago, status **derivado** e `remaining_amount` |
+| Aportes de eventos no motor (4.1.3) | `FinancialCalculationService` abate os eventos ativos depois das caixinhas e devolve `event_plans` com o detalhe |
+| CRUD de eventos (4.1.4) | lista, criação, edição, detalhe, exclusão e CRUD de fornecedores — 8 CBVs filtradas por usuário |
+| Tela do evento (4.1.5) | 5 cards (Custo Total, Já Pago, Falta Pagar, Já Guardado, Falta Guardar), barra de progresso e tabela de fornecedores com totais |
+| `AssetAllocationTarget` (4.2.1) | meta por classe com `UniqueConstraint(user, asset_class)` e bloqueio da soma acima de 100% |
+| `InvestmentAsset` (4.2.2 / 4.2.3) | ativo com quantidade, preço médio/atual, `last_quote_update` e properties de valor investido, valor atual e lucro/prejuízo (R$ e %) |
+| `QuoteUpdaterService` (4.2.4) | cotações pela **API oficial da B3** (sem chave), com brapi.dev (token opcional) e Yahoo como fallbacks; falha nunca sobrescreve o preço anterior |
+| Portfólio (4.2.5 / 4.2.6) | KPIs, gráfico de rosca atual vs meta, formset de metas, tabelas por classe com badge Aportar/Aguardar e botão de atualizar cotações |
 | Motor de cálculo (3.3.1 a 3.3.4) | `transactions/services.py`: `Period` + `FinancialCalculationService.summary()` — receita, gastos na conta, fatura sem duplicidade, investimentos, caixinhas e **saldo livre** |
 | Regra da fatura (3.3.3) | se existe lançamento `CREDIT_CARD_BILL` no período, ele é a fatura; os itens de cartão não são somados de novo |
 | Telas (3.1.4 / 3.2.3) | transações com filtro e KPIs, despesas fixas, caixinhas com barra de progresso |
@@ -38,23 +47,23 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 
 ## Não implementado
 
-- `investments` e `reminders` continuam com `models.py`, `views.py`, `admin.py` e `tests.py` vazios; `EventPlan`/`EventExpenseItem` ainda não existem (Sprint 4).
-- O aporte de eventos no motor de cálculo vale `0` até o `EventPlan` existir — o método `_event_contributions()` já está no lugar.
+- `reminders` continua com `models.py`, `views.py`, `admin.py` e `tests.py` vazios (Sprint 5).
+- Cripto não tem cotação automática (só renda fixa manual e renda variável pela B3); a classe entra em `skipped` com motivo "cotação manual".
+- O peso por ativo (`target_percentage_in_class`) é guardado e exibido, mas ainda não compara com o real — o badge é por classe, não por ativo.
 - O `FinancialCalculationService` não tem tela própria: o dashboard que consome `summary()` é a Sprint 5.
 - Sem Chart.js, sem dashboard real e sem lembretes.
 - Sem recuperação de senha, onboarding em `/profile/setup/` e verificação de e-mail.
 - Sem Docker e sem suíte de testes automatizados (as verificações são scripts de smoke com rollback, não `tests.py`).
 - Sem paginação ou busca nas listagens.
 
-## Próximos passos (Sprint 4)
+## Próximos passos (Sprint 5)
 
 | Bloco | O que entrega |
 | :--- | :--- |
-| 4.1.x | Eventos (`EventPlan`, `EventExpenseItem`) e consolidação de custo/pago/falta |
-| 4.2.x | Carteira de investimentos (`AssetAllocationTarget`, `InvestmentAsset`, cotações) |
-| 4.3.x | Ligação dos aportes de eventos ao motor de cálculo e telas |
+| 5.1.x | Dashboard consolidado consumindo `FinancialCalculationService.summary()` |
+| 5.2.x | Lembretes do dia (to-do sem check) e integração com Google Calendar |
 
-Depois: Sprint 5 (dashboard, lembretes) → Sprint 6 (PEP8, testes, Docker).
+Depois: Sprint 6 (testes automatizados, PEP8, Docker).
 
 ## Divergências entre o que está definido e o que está no disco
 
@@ -69,6 +78,9 @@ Depois: Sprint 5 (dashboard, lembretes) → Sprint 6 (PEP8, testes, Docker).
 | Tailwind | "CDN configurada ou CLI standalone" | CLI standalone via `django-tailwind` (build local, sem CDN) |
 | Exclusão de desconto de folha | "exclusão sempre com confirmação" | `confirm()` + POST na própria página de perfil (as listas usam página de confirmação) |
 | Despesa fixa e quinzenas | TASKS só define `billing_cycle` | além do ciclo, o `due_day` decide a quinzena — sem isso a despesa `MONTHLY` desaparecia das visões de quinzena (ver `docs/05`, §1.1) |
+| Fonte das cotações (4.2.4) | brapi.dev (ou yfinance) | **API oficial da B3** como primária, porque brapi exige token (401 sem ele) e o Yahoo devolve 429 para o IP da VPS; brapi (com `BRAPI_TOKEN`) e Yahoo ficam como fallback |
+| Metas por classe | "a soma deve validar exatamente 100%" | bloqueio quando **passa** de 100% e aviso na tela com quanto falta — exigir 100% a cada linha impediria cadastrar uma classe por vez |
+| Banco | PostgreSQL no PRD | `APP_ENV=dev` usa SQLite e `APP_ENV=prd` usa PostgreSQL, para rodar local sem instalar banco |
 | Caixinhas sequenciais | RF11 não define a ordem | abatimento em sequência alfabética sobre o que sobra, para a soma nunca passar do disponível |
 
 Resolvidas nas Sprints 1 a 3: banco PostgreSQL, idioma/timezone pt-BR, usuário customizado, existência de `templates/`, Tailwind local, perfil/contas/categorias, transações/despesas fixas, caixinhas e motor de cálculo.

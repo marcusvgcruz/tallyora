@@ -3,89 +3,110 @@
 ## Requisitos
 
 - Python 3.12+
-- Git (opcional, o projeto ainda não é um repositório versionado)
-- PostgreSQL 16+ (necessário apenas quando a tarefa 1.1.3 for concluída; hoje roda em SQLite)
+- Git
+- Nada de banco instalado para desenvolvimento: em `dev` o projeto usa **SQLite**.
+- PostgreSQL 16+ apenas para o modo `prd`.
 
-## Ambiente já existente
+## Dois ambientes: `dev` e `prd`
 
-O projeto já tem um ambiente virtual criado em `venv/` (Python 3.12.3) com as dependências de `requirements.txt` instaladas:
+O banco é escolhido pela variável `APP_ENV` do `.env`:
 
-```text
-Django==6.1.2
-psycopg2-binary==2.9.13
-python-dotenv==1.2.4
-asgiref==3.13.0
-sqlparse==0.6.0
-```
+| `APP_ENV` | Banco | Uso |
+| :--- | :--- | :--- |
+| `dev` (**padrão**) | SQLite em `db.sqlite3` na raiz | máquina local, testes, primeiro contato |
+| `prd` | PostgreSQL (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`) | VPS/produção |
 
-Verificação de sanidade do projeto:
+- Valor inválido em `APP_ENV` derruba o start com `ImproperlyConfigured` — não existe "meio ambiente".
+- `DEBUG` cai no default de cada ambiente (`True` em `dev`, `False` em `prd`) quando não está no `.env`.
+- `db.sqlite3` é **por máquina** e está no `.gitignore`: nunca é commitado nem compartilhado.
+- O mesmo banco não é compartilhado entre modos; migrar em `prd` não cria tabelas no SQLite e vice-versa.
 
-```bash
-cd ~/projetos/tallyora
-./venv/bin/python manage.py check
-# System check identified no issues (0 silenced).
-```
-
-## Ativar o ambiente
-
-```bash
-cd ~/projetos/tallyora
-source venv/bin/activate
-```
-
-> O diretório do ambiente virtual é `venv/` (sem ponto). O PRD menciona `.venv`; o que existe no disco é `venv/`.
-
-## Rodar o servidor de desenvolvimento
-
-```bash
-python manage.py runserver
-```
-
-Disponível em `http://127.0.0.1:8000/`. Rotas publicadas hoje:
-
-| Rota | O que é |
-| :--- | :--- |
-| `/` | Landing page pública (logado é redirecionado para `/dashboard/`) |
-| `/register/` | Cadastro por e-mail |
-| `/login/` | Login por e-mail |
-| `/logout/` | Logout (aceita **somente POST**) |
-| `/dashboard/` | Painel provisório (dados chegam na Sprint 5) |
-| `/admin/` | Django admin |
-
-## Recriar o ambiente do zero (se necessário)
+## Primeira execução (5 comandos)
 
 ```bash
 cd ~/projetos/tallyora
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env          # depois edite SECRET_KEY
 ```
 
-## Banco de dados (PostgreSQL)
-
-O projeto usa **PostgreSQL 16** (serviço `postgresql` na VPS). Provisionamento já feito:
+Gere a `SECRET_KEY` sem copiar de ninguém:
 
 ```bash
-# executado como superusuário do sistema
-sudo -u postgres psql -c "CREATE ROLE tallyora WITH LOGIN PASSWORD '<senha>';"
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Depois:
+
+```bash
+python manage.py migrate                 # cria o db.sqlite3 e as tabelas
+python manage.py tailwind install        # uma vez por ambiente (baixa o CLI)
+python manage.py tailwind build          # compila o CSS
+python manage.py createsuperuser         # pede e-mail, não username
+python manage.py runserver
+```
+
+Aplicação em `http://127.0.0.1:8000/`.
+
+## Acesso pelo VS Code via SSH (código na VPS)
+
+O projeto roda **na VPS**; o navegador do seu PC precisa de um túnel. Duas formas:
+
+**1. Port forwarding do VS Code (mais simples)**
+
+1. `Ctrl+Shift+P` → *Ports: Focus on Ports View* (aba **PORTS** no painel inferior).
+2. **Forward a Port** → `8000`.
+3. Rode `python manage.py runserver 127.0.0.1:8000` no terminal do VS Code.
+4. Abra `http://127.0.0.1:8000` no navegador do seu PC. O VS Code encaminha para a VPS.
+
+**2. Túnel SSH manual (fora do VS Code)**
+
+```bash
+# no seu PC
+ssh -L 8000:127.0.0.1:8000 hermes@<ip-da-vps>
+# na VPS
+python manage.py runserver 127.0.0.1:8000
+```
+
+Se a porta 8000 já estiver ocupada na VPS, use outra e encaminhe a mesma:
+
+```bash
+python manage.py runserver 127.0.0.1:8001     # e encaminhe 8001
+```
+
+Para o `runserver` aceitar o host encaminhado, mantenha `ALLOWED_HOSTS=127.0.0.1,localhost` no `.env` e acesse pelo `127.0.0.1` do seu PC (o forwarding preserva o `Host`).
+
+## Rodando em `prd` (PostgreSQL)
+
+```bash
+# .env
+APP_ENV=prd
+DB_NAME=tallyora
+DB_USER=tallyora
+DB_PASSWORD=<senha>
+DB_HOST=127.0.0.1
+DB_PORT=5432
+```
+
+Provisionamento do banco (uma vez, como superusuário do sistema):
+
+```bash
+sudo -u postgres psql -c "CREATE ROLE tallyora WITH LOGIN PASSWORD '<senha>' CREATEDB;"
 sudo -u postgres psql -c "CREATE DATABASE tallyora OWNER tallyora ENCODING 'UTF8';"
+python manage.py migrate
 ```
 
-A senha fica **somente** no `.env` (`DB_PASSWORD`). Para conferir a conexão:
-
-```bash
-PGPASSWORD="$(grep '^DB_PASSWORD=' .env | cut -d= -f2-)" \
-  psql -h 127.0.0.1 -U tallyora -d tallyora -c 'select current_user;'
-```
+`CREATEDB` no role é necessário para o Django criar o banco de teste ao rodar `manage.py test`.
 
 ## Migrações
 
 ```bash
 python manage.py makemigrations   # após criar/alterar models
-python manage.py migrate          # aplica no banco
+python manage.py migrate          # aplica no banco do APP_ENV atual
 ```
 
-Estado atual: todas as migrações aplicadas, incluindo `users.0001_initial` (o `CustomUser`).
+Nunca edite uma migração já aplicada; gere uma nova.
 
 ## Tailwind (CSS)
 
@@ -97,8 +118,34 @@ python manage.py tailwind build
 
 - Fonte: `theme/static_src/src/styles.css` (importa o Tailwind e escaneia templates/py/js).
 - Saída: `theme/static/css/dist/styles.css` — **versionada**, é o arquivo servido em runtime.
-- Se uma classe nova não aparecer na página, faltou o build (ou a classe está em arquivo fora do `@source`).
-- Primeira instalação do CLI (uma vez por ambiente): `python manage.py tailwind install`.
+- Se uma classe nova não aparecer na página, faltou o build.
+- `tailwind install` baixa o binário do CLI; é por ambiente, não por projeto.
+- Chart.js é local (`theme/static/js/chart.umd.min.js`), sem CDN.
+
+## Variáveis de ambiente
+
+| Arquivo | Estado |
+| :--- | :--- |
+| `.env` | **Não versionado** (permissão `600`), criado a partir do `.env.example`. |
+| `.env.example` | Versionado — template com as chaves e valores de exemplo, sem segredo. |
+
+Chaves:
+
+```text
+APP_ENV=dev            # dev (sqlite) | prd (postgresql)
+
+SECRET_KEY=<gerada>
+DEBUG=True             # opcional; default por ambiente
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+DB_NAME=tallyora       # só em prd
+DB_USER=tallyora
+DB_PASSWORD=
+DB_HOST=127.0.0.1
+DB_PORT=5432
+```
+
+O `core/settings.py` lê o `.env` via `python-dotenv` e falha ao subir sem `SECRET_KEY`. Regra: `.env` nunca é commitado; chave nova entra primeiro no `.env.example`.
 
 ## Superusuário (painel admin)
 
@@ -106,57 +153,35 @@ python manage.py tailwind build
 python manage.py createsuperuser
 ```
 
-O `createsuperuser` pede **e-mail** (não username), porque `USERNAME_FIELD = 'email'`.
+Pede **e-mail** (não username), porque `USERNAME_FIELD = 'email'`.
 
+## Rotas publicadas
 
-## Variáveis de ambiente
-
-O projeto **já possui** dois arquivos na raiz:
-
-| Arquivo | Estado |
+| Rota | O que é |
 | :--- | :--- |
-| `.env` | **Criado localmente, não versionado** (permissão `600`, `SECRET_KEY` já gerada com 50 caracteres). Está no `.gitignore`. |
-| `.env.example` | Versionado — template com as chaves e valores de exemplo, sem segredo. |
-
-Chaves existentes:
-
-```text
-SECRET_KEY=<gerada>
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
-
-DB_NAME=tallyora
-DB_USER=tallyora
-DB_PASSWORD=
-DB_HOST=127.0.0.1
-DB_PORT=5432
-```
-
-O `core/settings.py` **lê o `.env`** via `python-dotenv` e falha ao subir sem `SECRET_KEY`. O bloco `DB_*` está preenchido com as credenciais reais do PostgreSQL local.
-
-Regra: `.env` nunca é commitado; qualquer chave nova entra primeiro no `.env.example`.
+| `/` | Landing page pública (logado é redirecionado para `/dashboard/`) |
+| `/register/`, `/login/`, `/logout/` | Autenticação por e-mail (logout só via POST) |
+| `/dashboard/` | Painel provisório (dados chegam na Sprint 5) |
+| `/perfil/` | Perfil financeiro e descontos de folha |
+| `/contas/`, `/categorias/` | Contas/cartões e categorias |
+| `/transacoes/`, `/transacoes/fixas/` | Transações com filtro de período e despesas fixas |
+| `/caixinhas/`, `/caixinhas/eventos/` | Caixinhas e eventos (casamento, viagens) |
+| `/investimentos/` | Carteira P3X com cotações |
+| `/admin/` | Django admin |
 
 ## Execução com Docker
 
-Planejada para a Sprint 6 (tarefas 6.3.1–6.3.3): `Dockerfile` em `python:3.12-slim` e `docker-compose.yml` com os serviços `web` (Django) e `db` (PostgreSQL 16), volume persistente e `healthcheck`. **Ainda não existe nada disso no projeto.**
+Planejada para a Sprint 6 (tarefas 6.3.1–6.3.3): `Dockerfile` em `python:3.12-slim` e `docker-compose.yml` com os serviços `web` (Django) e `db` (PostgreSQL 16). **Ainda não existe nada disso no projeto.**
 
 ## Versionamento
 
-O projeto é um repositório Git com branch padrão `main` e remoto público:
-
-```text
-https://github.com/marcusvgcruz/tallyora
-```
-
-Fluxo:
+Repositório Git, branch `main`, remoto público: `https://github.com/marcusvgcruz/tallyora`.
 
 ```bash
-git add -A
-git commit -m "mensagem"
-git push
+git add -A && git commit -m "mensagem" && git push
 ```
 
-**Não versionados** (por `.gitignore`): `venv/`, `__pycache__/`, `db.sqlite3`, `.env`, arquivos de cobertura e caches de ferramentas. Antes de commitar, confirme com `git status` que nada disso aparece na lista.
+**Não versionados** (`.gitignore`): `venv/`, `__pycache__/`, `db.sqlite3`, `.env`, `node_modules/`, caches. Confirme com `git status` antes de commitar.
 
 ## Comandos úteis
 
@@ -168,3 +193,4 @@ git push
 | `python manage.py createsuperuser` | Cria usuário do admin |
 | `python manage.py shell` | Shell interativo com o ORM carregado |
 | `python manage.py test` | Roda a suíte de testes |
+| `python manage.py tailwind build` | Recompila o CSS após mudar template |

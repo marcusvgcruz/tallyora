@@ -123,6 +123,26 @@ Largura em `style` inline (o valor vem do model, não é classe utilitária) e `
 
 `bg-amber-500/5` + `border-amber-500/30` + texto `text-amber-300`. Usado para explicar que itens marcados como cartão compõem a fatura e **não** são descontados duas vezes, e para destacar o campo `is_on_credit_card` no formulário. Ciano (`bg-cyan-500/5`, `border-cyan-500/20`) é o par neutro para notas explicativas sem alerta.
 
+### Cards de resumo do evento
+
+Cinco KPIs em `lg:grid-cols-5` (partial `_card_kpi` com `tone`): Custo Total do Evento, Total Já Pago (`positive`), Falta Pagar (`warning`), Total Já Guardado (`info`) e Quanto Falta Guardar (`warning`). Sempre `tabular-nums` e `R$ 0,00`.
+
+### Badge de status do fornecedor
+
+`Pendente` (âmbar), `Parcial` (ciano), `Pago` (esmeralda). Derivado do valor pago, nunca digitado — a mesma pill usada nas categorias.
+
+### Gráfico de rosca (carteira)
+
+Chart.js 4.4.6 **local** (`theme/static/js/chart.umd.min.js`, sem CDN), dois anéis: divisão atual (interno) e meta por classe (externo). Os dados chegam por `{{ chart_data|json_script:"portfolio-chart-data" }}` — nunca por interpolação inline no script. Canvas `id="portfolio-chart"` com altura fixa (`h-72`).
+
+### Badge Aportar / Aguardar
+
+Compara o peso atual da classe com a meta: `Aportar` (abaixo da meta, esmeralda) ou `Aguardar` (na meta ou acima, slate). É a leitura de onde colocar o próximo aporte.
+
+### Aviso de metas incompletas
+
+Faixa âmbar (`bg-amber-500/5` + `border-amber-500/30`) quando a soma das metas não fecha 100%, mostrando quanto falta; o valor acompanha a digitação.
+
 ## 6. Layout da área logada
 
 - **Sidebar fixa no desktop** (`w-64`, `bg-slate-900 border-r border-slate-800`): logo Tallyora em gradiente, links com ícone + texto e estado ativo destacado, botão de logout no rodapé.
