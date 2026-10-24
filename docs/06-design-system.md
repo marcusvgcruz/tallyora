@@ -108,10 +108,25 @@ Estilizados pelos `widgets` do Django Form — o componente base é:
 </div>
 ```
 
+### Barra de progresso (caixinhas)
+
+```html
+<div class="h-1.5 rounded-full bg-slate-800 overflow-hidden" role="progressbar"
+     aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+  <div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width: 25%"></div>
+</div>
+```
+
+Largura em `style` inline (o valor vem do model, não é classe utilitária) e `aria-valuenow` sempre preenchido.
+
+### Aviso de fatura (âmbar)
+
+`bg-amber-500/5` + `border-amber-500/30` + texto `text-amber-300`. Usado para explicar que itens marcados como cartão compõem a fatura e **não** são descontados duas vezes, e para destacar o campo `is_on_credit_card` no formulário. Ciano (`bg-cyan-500/5`, `border-cyan-500/20`) é o par neutro para notas explicativas sem alerta.
+
 ## 6. Layout da área logada
 
 - **Sidebar fixa no desktop** (`w-64`, `bg-slate-900 border-r border-slate-800`): logo Tallyora em gradiente, links com ícone + texto e estado ativo destacado, botão de logout no rodapé.
-- **Itens de navegação:** Dashboard, Meu Perfil & Salário, Transações & Fatura, Caixinhas & Eventos, Investimentos P3X, Lembretes do Dia.
+- **Itens de navegação:** Dashboard, Meu Perfil & Salário, Transações & Fatura (`transactions:list`), Caixinhas & Eventos (`goals:list`), Investimentos P3X e Lembretes do Dia (estes dois ainda como "em breve", `div` não clicável, até as sprints 4 e 5).
 - **Área de conteúdo:** `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8`, com grids responsivos `grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6`.
 - **Sidebar responsiva:** recolhe em telas pequenas; no mobile a navegação vira menu colapsável.
 - **Mensagens do sistema:** bloco de alerta no topo do `base.html` usando `django.contrib.messages` (sucesso, erro, aviso).
@@ -121,6 +136,7 @@ Estilizados pelos `widgets` do Django Form — o componente base é:
 - **Todo texto visível em pt-BR.** Rótulo, placeholder, mensagem de erro, estado vazio, título de página e nome de botão.
 - Valores monetários sempre formatados como `R$ 1.850,00` (padrão brasileiro: vírgula decimal, ponto de milhar) e com `tabular-nums`.
 - Estados vazios sempre com texto explicativo e ação sugerida (`_empty_state.html`) — nunca tela em branco.
-- Exclusão sempre com confirmação (`_modal_confirm_delete.html`).
+- Exclusão sempre com confirmação: página dedicada `<app>/*_confirm_delete.html` (padrão das listas de contas, categorias, transações, despesas fixas e caixinhas) ou `_modal_confirm_delete.html` quando a exclusão acontece dentro de outra tela, como os descontos de folha no perfil. Sempre via `POST` com `csrf_token`.
+- Formulários de transação e despesa fixa usam `_form_field.html` e destacam o campo de cartão com o painel âmbar.
 - O card `Saldo Livre (O que sobra no mês)` é o elemento de maior destaque do dashboard.
 - Indicadores de aporte na carteira usam badge: `Aportar` (abaixo da meta) ou `Aguardar` (na meta ou acima).

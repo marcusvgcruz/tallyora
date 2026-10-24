@@ -13,6 +13,15 @@ Regras que definem o funcionamento do motor de cálculo. Estão no PRD (RF09, RF
 
 O período selecionado pode ser: **mês completo**, **1ª quinzena** ou **2ª quinzena**.
 
+## 1.1 Despesa fixa entra no período pelo vencimento
+
+`RecurringExpense` tem `due_day` e `billing_cycle`. Uma despesa fixa entra no cálculo quando:
+
+- o `billing_cycle` é compatível: `MONTHLY` vale em qualquer período; `FIRST_HALF` só na 1ª quinzena (e no mês completo); `SECOND_HALF` só na 2ª quinzena (e no mês completo);
+- o `due_day` cai dentro dos dias do período (1–15 na 1ª quinzena, 16–fim na 2ª, 1–fim no mês completo).
+
+Vencimento em dia que não existe no mês (31 em fevereiro) conta no mês completo e na 2ª quinzena — nunca desaparece. Consequência: **a soma das duas quinzenas é igual ao mês completo**, sem contar nada duas vezes. Despesas com `is_active=False` ficam fora.
+
 ## 2. Fatura do cartão sem duplicidade (RF09 / US03)
 
 Todo lançamento de despesa — `RecurringExpense` e `Transaction` — carrega a flag `is_on_credit_card`, exibida ao usuário como *"Este gasto está na fatura do cartão de crédito?"*.
@@ -48,9 +57,10 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
 - Cada caixinha define a alocação por `allocation_type`:
   - `PERCENTAGE`: `allocation_value` é `%` sobre o saldo disponível.
   - `FIXED`: `allocation_value` é `R$` fixo.
-- Método previsto no model: `calculate_period_contribution(available_balance)` → retorna o `R$` a separar no período.
+- Método **implementado** no model: `calculate_period_contribution(available_balance)` → retorna o `R$` a separar no período. Base ≤ 0 devolve `0` (não se separa de onde não há); `FIXED` devolve o próprio valor, sem teto.
 - Cada caixinha guarda `current_balance` (acumulado) e `target_amount` (meta), além de `storage_location` (onde o dinheiro está: cofrinho do banco, CDB de liquidez diária, etc.).
-- Validação: a soma das alocações **percentuais ativas** não pode passar de 100% (R04 do PRD); alocações fixas que superem a receita líquida devem gerar alerta.
+- Validação: cada alocação percentual não pode passar de 100% (validado no `clean()` do model e no `GoalBoxForm`). Alocações fixas que superem a receita líquida levam o saldo livre a negativo — o número é exibido assim mesmo, sem esconder o estouro.
+- As caixinhas são abatidas **em sequência** (ordem alfabética do nome): cada uma recebe sua fatia sobre o que sobrou da anterior, e a soma nunca passa do disponível.
 
 ## 5. Eventos (RF12 / US06)
 
@@ -89,7 +99,7 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
 
 ## 9. Ordem de cálculo no fechamento do período
 
-Sequência que o `FinancialCalculationService` deve seguir:
+Sequência que o `FinancialCalculationService` (`transactions/services.py`) executa:
 
 1. Determinar o período (mês / 1ª quinzena / 2ª quinzena).
 2. Calcular **receita líquida** (CLT com descontos ou PJ do período).
@@ -101,3 +111,5 @@ Sequência que o `FinancialCalculationService` deve seguir:
 8. Resultado = **saldo livre do período**.
 
 Nenhum valor pode ser abatido duas vezes; toda soma deve ser rastreável ao lançamento de origem.
+
+Implementado na Sprint 3: passos 1 a 7 com receita, gastos, fatura, investimentos e caixinhas. O passo 7 ainda contribui `0` em eventos porque `EventPlan` é model da Sprint 4 — o método `_event_contributions()` já está no lugar e passa a somar quando o model existir.

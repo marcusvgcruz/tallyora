@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title|default:'Caixinhas & Eventos' }} — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">{{ title|default:'Caixinhas & Eventos' }}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Separe dinheiro por objetivo — viagem, reserva, presente — e acompanhe quanto falta para chegar na meta.
+      </p>
+    </div>
+    <a href="{% url 'goals:create' %}"
+       class="inline-flex w-fit items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      Nova caixinha
+    </a>
+  </div>
+
+  {# ---------- Totais ---------- #}
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% with valor=total_balance|floatformat:"2g" %}
+      {% include 'partials/_card_kpi.html' with label='Total guardado nas caixinhas' value='R$ '|add:valor tone='info' %}
+    {% endwith %}
+    {% with valor=total_target|floatformat:"2g" %}
+      {% include 'partials/_card_kpi.html' with label='Soma das metas' value='R$ '|add:valor tone='neutral' %}
+    {% endwith %}
+  </div>
+
+  {# ---------- Cards por caixinha ---------- #}
+  {% if goal_boxes %}
+    <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {% for box in goal_boxes %}
+        <div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+          <div>
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 class="truncate text-base font-semibold text-slate-100">{{ box.name }}</h2>
+                <p class="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                  <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 21s7-5.6 7-11a7 7 0 10-14 0c0 5.4 7 11 7 11z"></path>
+                    <circle cx="12" cy="10" r="2.5"></circle>
+                  </svg>
+                  <span class="truncate">{{ box.storage_location|default:"Onde o dinheiro está não informado" }}</span>
+                </p>
+              </div>
+              <span class="inline-flex shrink-0 items-center rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-medium text-cyan-400">
+                {{ box.get_allocation_type_display }}
+              </span>
+            </div>
+
+            <div class="mt-5">
+              <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Saldo atual</span>
+              <p class="mt-1 text-2xl font-bold tabular-nums text-cyan-400">R$ {{ box.current_balance|floatformat:"2g" }}</p>
+              <p class="mt-1 text-xs text-slate-500 tabular-nums">Meta: R$ {{ box.target_amount|floatformat:"2g" }}</p>
+            </div>
+
+            {# ---------- Barra de progresso ---------- #}
+            <div class="mt-4">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400">Progresso</span>
+                <span class="font-semibold tabular-nums text-slate-100">{{ box.progress_percentage|floatformat:"1" }}%</span>
+              </div>
+              <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-800"
+                   role="progressbar"
+                   aria-valuenow="{{ box.progress_percentage|floatformat:0 }}"
+                   aria-valuemin="0"
+                   aria-valuemax="100"
+                   aria-label="Progresso da caixinha {{ box.name }}">
+                <div class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-all duration-300"
+                     style="width: {{ box.progress_percentage|floatformat:0 }}%"></div>
+              </div>
+              <p class="mt-2 text-xs text-slate-400 tabular-nums">
+                {% if box.remaining_amount > 0 %}
+                  Faltam R$ {{ box.remaining_amount|floatformat:"2g" }} para a meta
+                {% else %}
+                  <span class="font-medium text-emerald-400">Meta atingida</span>
+                {% endif %}
+              </p>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-2">
+              <span class="text-xs text-slate-400">Alocação</span>
+              <span class="text-xs font-semibold tabular-nums text-slate-200">
+                {% if box.allocation_type == 'PERCENTAGE' %}
+                  {{ box.allocation_value|floatformat:"2g" }}% do disponível
+                {% else %}
+                  R$ {{ box.allocation_value|floatformat:"2g" }} por período
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-800 pt-4">
+            <a href="{% url 'goals:update' box.pk %}"
+               class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+               aria-label="Editar caixinha {{ box.name }}">
+              Editar
+            </a>
+            <a href="{% url 'goals:delete' box.pk %}"
+               class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+               aria-label="Excluir caixinha {{ box.name }}">
+              Excluir
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% url 'goals:create' as criar_caixinha_url %}
+    {% include 'partials/_empty_state.html' with title='Nenhuma caixinha criada' description='Crie sua primeira caixinha para separar dinheiro por objetivo e acompanhar o quanto falta para chegar na meta.' action_url=criar_caixinha_url action_label='Nova caixinha' %}
+  {% endif %}
+{% endblock %}

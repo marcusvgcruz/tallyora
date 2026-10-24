@@ -43,21 +43,21 @@
 
 ---
 
-### Sprint 3: Motor de Transações, Despesas Fixas, Fatura sem Duplicidade e Caixinhas
-- [ ] **3.1. Despesas Fixas Recorrentes e Transações (`transactions`)**
-  - [ ] **3.1.1.** Criar o model `RecurringExpense(BaseModel)` em `transactions/models.py` com `title`, `amount`, `due_day`, `billing_cycle` (`FIRST_HALF`, `SECOND_HALF`, `MONTHLY`), `is_on_credit_card` (`BooleanField`) e `is_active`.
-  - [ ] **3.1.2.** Criar o model `Transaction(BaseModel)` em `transactions/models.py` com `title`, `amount`, `transaction_type` (`INCOME`, `EXPENSE`, `CREDIT_CARD_BILL`), `reference_date`, `is_on_credit_card` (`BooleanField`) e `is_paid`.
-  - [ ] **3.1.3.** Criar `RecurringExpenseForm` e `TransactionForm` em `transactions/forms.py` destacando o campo `is_on_credit_card` ("Este gasto está na fatura do cartão de crédito?").
-  - [ ] **3.1.4.** Implementar CBVs de CRUD para `RecurringExpense` e `Transaction` em `transactions/views.py` com filtros por mês/ano e período (1ª quinzena, 2ª quinzena ou mês completo).
-- [ ] **3.2. Caixinhas / Objetivos com Suporte a % ou R$ Fixo (`goals_events`)**
-  - [ ] **3.2.1.** Criar o model `GoalBox(BaseModel)` em `goals_events/models.py` com `name`, `storage_location`, `allocation_type` (`PERCENTAGE`, `FIXED`), `allocation_value`, `current_balance` e `target_amount`.
-  - [ ] **3.2.2.** Implementar método utilitário `calculate_period_contribution(available_balance)` no model `GoalBox` que retorna o valor exato em `R$` a ser separado no mês conforme a escolha do usuário (`%` sobre a base disponível ou valor fixo em `R$`).
-  - [ ] **3.2.3.** Implementar CRUD via CBVs (`GoalBoxListView`, `GoalBoxCreateView`, `GoalBoxUpdateView`, `GoalBoxDeleteView`) e templates com barra de progresso em `templates/goals_events/`.
-- [ ] **3.3. Motor de Cálculo Financeiro Detalhado (`transactions/services.py`)**
-  - [ ] **3.3.1.** Criar a classe de serviço `FinancialCalculationService` em `transactions/services.py` para consolidar os números do período selecionado pelo usuário.
-  - [ ] **3.3.2.** Implementar o cálculo da Receita Líquida do período (considerando salário bruto CLT menos `PayrollDeduction` ou entradas variáveis PJ do período).
-  - [ ] **3.3.3.** Implementar a regra de **Evitação de Duplicidade da Fatura**: somar separadamente (A) Despesas Fixas e Variáveis onde `is_on_credit_card=False` e (B) Total da Fatura do Cartão (composta pelo lançamento de fatura ou soma dos itens `is_on_credit_card=True`), garantindo que nenhum item no cartão seja subtraído duas vezes do saldo em conta.
-  - [ ] **3.3.4.** Implementar o abatimento sequencial das alocações de Investimento (`%` ou `R$`), Caixinhas (`%` ou `R$`) e Aportes de Eventos Ativos, retornando o valor exato do **"Saldo Livre no Mês (O que sobra)"**.
+### Sprint 3: Motor de Transações, Despesas Fixas, Fatura sem Duplicidade e Caixinhas — [x] CONCLUÍDA
+- [X] **3.1. Despesas Fixas Recorrentes e Transações (`transactions`)**
+  - [X] **3.1.1.** Criar o model `RecurringExpense(BaseModel)` em `transactions/models.py` com `title`, `amount`, `due_day`, `billing_cycle` (`FIRST_HALF`, `SECOND_HALF`, `MONTHLY`), `is_on_credit_card` (`BooleanField`) e `is_active`.
+  - [X] **3.1.2.** Criar o model `Transaction(BaseModel)` em `transactions/models.py` com `title`, `amount`, `transaction_type` (`INCOME`, `EXPENSE`, `CREDIT_CARD_BILL`), `reference_date`, `is_on_credit_card` (`BooleanField`) e `is_paid`.
+  - [X] **3.1.3.** Criar `RecurringExpenseForm` e `TransactionForm` em `transactions/forms.py` destacando o campo `is_on_credit_card` ("Este gasto está na fatura do cartão de crédito?").
+  - [X] **3.1.4.** Implementar CBVs de CRUD para `RecurringExpense` e `Transaction` em `transactions/views.py` com filtros por mês/ano e período (1ª quinzena, 2ª quinzena ou mês completo).
+- [X] **3.2. Caixinhas / Objetivos com Suporte a % ou R$ Fixo (`goals_events`)**
+  - [X] **3.2.1.** Criar o model `GoalBox(BaseModel)` em `goals_events/models.py` com `name`, `storage_location`, `allocation_type` (`PERCENTAGE`, `FIXED`), `allocation_value`, `current_balance` e `target_amount`.
+  - [X] **3.2.2.** Implementar método utilitário `calculate_period_contribution(available_balance)` no model `GoalBox` que retorna o valor exato em `R$` a ser separado no mês conforme a escolha do usuário (`%` sobre a base disponível ou valor fixo em `R$`).
+  - [X] **3.2.3.** Implementar CRUD via CBVs (`GoalBoxListView`, `GoalBoxCreateView`, `GoalBoxUpdateView`, `GoalBoxDeleteView`) e templates com barra de progresso em `templates/goals_events/`.
+- [X] **3.3. Motor de Cálculo Financeiro Detalhado (`transactions/services.py`)**
+  - [X] **3.3.1.** Criar a classe de serviço `FinancialCalculationService` em `transactions/services.py` para consolidar os números do período selecionado pelo usuário.
+  - [X] **3.3.2.** Implementar o cálculo da Receita Líquida do período (considerando salário bruto CLT menos `PayrollDeduction` ou entradas variáveis PJ do período).
+  - [X] **3.3.3.** Implementar a regra de **Evitação de Duplicidade da Fatura**: somar separadamente (A) Despesas Fixas e Variáveis onde `is_on_credit_card=False` e (B) Total da Fatura do Cartão (composta pelo lançamento de fatura ou soma dos itens `is_on_credit_card=True`), garantindo que nenhum item no cartão seja subtraído duas vezes do saldo em conta.
+  - [X] **3.3.4.** Implementar o abatimento sequencial das alocações de Investimento (`%` ou `R$`), Caixinhas (`%` ou `R$`) e Aportes de Eventos Ativos, retornando o valor exato do **"Saldo Livre no Mês (O que sobra)"**.
 
 ---
 

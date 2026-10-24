@@ -1,6 +1,6 @@
 # 04 — Modelos e Banco de Dados
 
-Estado real do código (23/10/2026): **Sprints 1 e 2 implementadas** — `BaseModel`, `CustomUser`, `UserProfile`, `PayrollDeduction`, `BankAccount` e `Category` existem e estão migrados. Os models das sprints 3 a 5 seguem apenas desenhados (marcados como *planejado*).
+Estado real do código (24/10/2026): **Sprints 1, 2 e 3 implementadas** — `BaseModel`, `CustomUser`, `UserProfile`, `PayrollDeduction`, `BankAccount`, `Category`, `Transaction`, `RecurringExpense` e `GoalBox` existem e estão migrados. Os models das sprints 4 e 5 seguem apenas desenhados (marcados como *planejado*).
 
 ## Convenções gerais
 
@@ -50,7 +50,7 @@ Properties do `UserProfile` (fonte única da regra, ver `05-regras-de-negocio-fi
 | `first_half_income` | CLT **quinzenal**: `base_gross_income × advance_percentage / 100` (sem descontos). Outros regimes: `0` |
 | `second_half_income` | CLT quinzenal: `net_income - first_half_income`. Regime de pagamento único: `net_income` |
 
-Arredondamento: helper `to_money()` com `ROUND_HALF_UP` em 2 casas — evita centavo perdido na divisão das quinzenas.
+Arredondamento: helper `to_money()` com `ROUND_HALF_UP` em 2 casas — evita centavo perdido na divisão das quinzenas. O helper vive em `core/models.py` (junto de `ZERO` e `MONEY_PLACES`) e é importado por `profiles` e `goals_events`.
 
 ### `accounts`
 
@@ -75,20 +75,29 @@ Categorias padrão: **Receitas** — Salário (`#10b981`), Adiantamento (`#34d39
 
 Os dois receivers ficam em `<app>/signals.py` e são registrados no `ready()` do `apps.py`.
 
+### `transactions`
+
+| Model | Campos | Regras |
+| :--- | :--- | :--- |
+| `RecurringExpense` | `user` (`related_name='recurring_expenses'`), `category`, `account`, `title`, `amount`, `due_day`, `billing_cycle` (`FIRST_HALF`/`SECOND_HALF`/`MONTHLY`), `is_on_credit_card`, `is_active` | `due_day` validado 1–31; `category`/`account` com `SET_NULL`; property `applies_every_cycle` |
+| `Transaction` | `user` (`related_name='transactions'`), `account`, `category`, `title`, `amount`, `transaction_type` (`INCOME`/`EXPENSE`/`CREDIT_CARD_BILL`), `reference_date`, `is_on_credit_card`, `is_paid` | `reference_date` com default `timezone.localdate`; properties `is_card_bill`, `is_income`, `signed_amount` |
+
+### `goals_events`
+
+| Model | Campos | Regras |
+| :--- | :--- | :--- |
+| `GoalBox` | `user` (`related_name='goal_boxes'`), `name`, `storage_location`, `allocation_type` (`PERCENTAGE`/`FIXED`), `allocation_value`, `current_balance`, `target_amount` | `allocation_value ≥ 0`; percentual ≤ 100 validado no `clean()` do model e no form; properties `progress_percentage` (limitada a 100) e `remaining_amount` |
+
+`GoalBox.calculate_period_contribution(available_balance)` é a regra única do aporte: percentual aplica a fatia sobre a base disponível, valor fixo devolve o próprio valor e base ≤ 0 devolve `0`.
+
+O motor de cálculo fica em `transactions/services.py` (`Period` + `FinancialCalculationService`), não no model — ver `05-regras-de-negocio-financeiras.md`.
+
 ## Desenho de dados das sprints futuras (*planejado*)
 
-### `transactions` (Sprint 3)
+### `goals_events` (Sprint 4)
 
 | Model | Campos principais |
 | :--- | :--- |
-| `RecurringExpense` | `user`, `category`, `account`, `title`, `amount`, `due_day`, `is_on_credit_card`, `billing_cycle` (`FIRST_HALF`/`SECOND_HALF`/`MONTHLY`), `is_active` |
-| `Transaction` | `user`, `account`, `category`, `title`, `amount`, `transaction_type` (`INCOME`/`EXPENSE`/`CREDIT_CARD_BILL`), `reference_date`, `is_on_credit_card`, `is_paid` |
-
-### `goals_events` (Sprint 3/4)
-
-| Model | Campos principais |
-| :--- | :--- |
-| `GoalBox` | `user`, `name`, `storage_location`, `allocation_type` (`PERCENTAGE`/`FIXED`), `allocation_value`, `current_balance`, `target_amount` |
 | `EventPlan` | `user`, `linked_goal_box` (FK opcional), `title`, `event_date`, `already_saved_amount`, `monthly_contribution_type` (`PERCENTAGE`/`FIXED`), `monthly_contribution_value` |
 | `EventExpenseItem` | `event` (FK), `supplier_name`, `category_name`, `total_cost`, `amount_paid`, `payment_status` (`PENDING`/`PARTIAL`/`PAID`), `notes` |
 
@@ -118,7 +127,7 @@ Não existe campo de conclusão/`is_done` — decisão de produto: o mural não 
 - **PostgreSQL 16.15** é o único banco: `django.db.backends.postgresql`, database/role `tallyora` em `127.0.0.1:5432`.
 - Credenciais (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`) vêm do `.env` via `python-dotenv`; `SECRET_KEY` é obrigatória.
 - `db.sqlite3` foi removido do projeto e está no `.gitignore`.
-- Migrações aplicadas: `users.0001_initial`, `profiles.0001_initial`, `accounts.0001_initial`, `categories.0001_initial` + migrações padrão do Django.
+- Migrações aplicadas: `users.0001_initial`, `profiles.0001_initial`, `accounts.0001_initial`, `categories.0001_initial`, `transactions.0001_initial`, `goals_events.0001_initial` + migrações padrão do Django.
 
 ### Migrações
 

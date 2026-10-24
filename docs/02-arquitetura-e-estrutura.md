@@ -33,6 +33,8 @@ tallyora/
 │   ├── profiles/           # profile_detail.html (perfil + descontos)
 │   ├── accounts/           # account_list, account_form, account_confirm_delete
 │   ├── categories/         # category_list, category_form, category_confirm_delete
+│   ├── transactions/       # transaction_list|form|confirm_delete, recurring_*
+│   ├── goals_events/       # goalbox_list|form|confirm_delete
 │   └── partials/           # _card_kpi, _empty_state, _modal_confirm_delete, _form_field
 ├── theme/                  # app do django-tailwind: fonte (static_src) e CSS compilado
 │   └── static/css/dist/styles.css   # saída do build (versionada)
@@ -42,8 +44,8 @@ tallyora/
 ├── profiles/               # app de perfil financeiro
 ├── accounts/               # app de contas e cartões
 ├── categories/             # app de categorias
-├── transactions/           # app de transações e motor de cálculo
-├── goals_events/           # app de caixinhas e eventos
+├── transactions/           # app de transações, despesas fixas e motor de cálculo
+├── goals_events/           # app de caixinhas (eventos entram na Sprint 4)
 ├── investments/            # app de carteira
 └── reminders/              # app de lembretes
 ```
@@ -55,7 +57,7 @@ tallyora/
 | Camada | Arquivo | Regra |
 | :--- | :--- | :--- |
 | Configuração | `core/settings.py` | Única fonte de configuração; lê o `.env` via `python-dotenv` |
-| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/`, inclui `core.urls` (namespace `core`) e `users.urls` (namespace `users`) |
+| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/` e inclui as URLconfs das apps com prefixo (`perfil/`, `contas/`, `categorias/`, `transacoes/`, `caixinhas/`) |
 | Rotas de app | `<app>/urls.py` | Arquivo por app com `app_name`; rotas nomeadas (`core:dashboard`, `core:landing`) |
 | Regras de dados | `<app>/models.py` | Todo model herda de `BaseModel`; campos em inglês |
 | Entrada de dados | `<app>/forms.py` | `ModelForm`/`Form` com validação em `clean()` e widgets estilizados via Tailwind |
@@ -67,7 +69,7 @@ tallyora/
 > **Por que existe `core/root_urls.py`:** o namespace `core:` é criado pelo `include('core.urls')`. Colocar `app_name` direto no `ROOT_URLCONF` **não** registra namespace (verificado na prática: resulta em `NoReverseMatch`). Por isso o root é um arquivo separado e `core/urls.py` continua sendo a URLconf da app.
 
 
-`signals.py` já existe em `profiles/` (cria o `UserProfile`) e `categories/` (categorias padrão). `services.py` continua só no backlog (`TASKS.md` 3.3.1, 4.2.4, 5.1.3) — é a convenção adotada para onde a lógica de cálculo deve ir nas sprints 3 a 5.
+`signals.py` existe em `profiles/` (cria o `UserProfile`) e `categories/` (categorias padrão). `services.py` existe em `transactions/` (motor de cálculo da Sprint 3) e é a convenção para `investments/` (4.2.4) e `reminders/` (5.1.3).
 
 ## Configuração atual do `core/settings.py`
 
@@ -108,10 +110,22 @@ Valores presentes hoje no arquivo:
 | `/categorias/nova/` | `categories:create` | `CategoryCreateView` | autenticado |
 | `/categorias/<pk>/editar/` | `categories:update` | `CategoryUpdateView` | autenticado |
 | `/categorias/<pk>/excluir/` | `categories:delete` | `CategoryDeleteView` | autenticado (**POST**) |
+| `/transacoes/` | `transactions:list` | `TransactionListView` (filtros `mes`, `ano`, `periodo`) | autenticado |
+| `/transacoes/nova/` | `transactions:create` | `TransactionCreateView` | autenticado |
+| `/transacoes/<pk>/editar/` | `transactions:update` | `TransactionUpdateView` | autenticado |
+| `/transacoes/<pk>/excluir/` | `transactions:delete` | `TransactionDeleteView` | autenticado (**POST**) |
+| `/transacoes/fixas/` | `transactions:recurring_list` | `RecurringExpenseListView` | autenticado |
+| `/transacoes/fixas/nova/` | `transactions:recurring_create` | `RecurringExpenseCreateView` | autenticado |
+| `/transacoes/fixas/<pk>/editar/` | `transactions:recurring_update` | `RecurringExpenseUpdateView` | autenticado |
+| `/transacoes/fixas/<pk>/excluir/` | `transactions:recurring_delete` | `RecurringExpenseDeleteView` | autenticado (**POST**) |
+| `/caixinhas/` | `goals:list` | `GoalBoxListView` | autenticado |
+| `/caixinhas/nova/` | `goals:create` | `GoalBoxCreateView` | autenticado |
+| `/caixinhas/<pk>/editar/` | `goals:update` | `GoalBoxUpdateView` | autenticado |
+| `/caixinhas/<pk>/excluir/` | `goals:delete` | `GoalBoxDeleteView` | autenticado (**POST**) |
 
-`.py` de contas, categorias e descontos usam `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
+`Todo `.py` de dados (contas, categorias, descontos, transações, despesas fixas e caixinhas) usa `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
 
-Ainda **não existem**: `/transactions/`, `/investments/`, `/events/`, `/reminders/` — são das sprints 3 a 5. O PRD cita `/profile/setup/` como onboarding; o projeto expõe a edição do perfil em `/perfil/` (o onboarding não é tarefa do backlog).
+Ainda **não existem**: `/investments/`, `/events/`, `/reminders/` — são das sprints 4 e 5. O PRD cita `/profile/setup/` como onboarding; o projeto expõe a edição do perfil em `/perfil/` (o onboarding não é tarefa do backlog).
 
 
 ## O que não usar

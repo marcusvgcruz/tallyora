@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title|default:'Despesas fixas' }} — Tallyora{% endblock %}
+
+{% block content %}
+  <div class="flex flex-col gap-2">
+    <a href="{% url 'transactions:list' %}"
+       class="inline-flex w-fit items-center gap-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M19 12H5"></path>
+        <path d="M12 19l-7-7 7-7"></path>
+      </svg>
+      Voltar para Transações &amp; Fatura
+    </a>
+  </div>
+
+  <div class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">{{ title|default:'Despesas fixas' }}</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Contas que se repetem todo mês: aluguel, internet, assinaturas. O dia de vencimento e o ciclo
+        (mensal ou por quinzena) organizam o que sai da conta e o que entra na fatura.
+      </p>
+    </div>
+    <a href="{% url 'transactions:recurring_create' %}"
+       class="inline-flex w-fit items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      Nova despesa fixa
+    </a>
+  </div>
+
+  {# ---------- Total mensal ---------- #}
+  <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% with valor=total|floatformat:"2g" %}
+      {% include 'partials/_card_kpi.html' with label='Total mensal das despesas fixas' value='R$ '|add:valor tone='negative' %}
+    {% endwith %}
+  </div>
+
+  {# ---------- Lista ---------- #}
+  {% if recurring_expenses %}
+    <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
+          <caption class="sr-only">Despesas fixas cadastradas</caption>
+          <thead class="bg-slate-900/60">
+            <tr>
+              <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Título</th>
+              <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Valor</th>
+              <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Vencimento</th>
+              <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Ciclo</th>
+              <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Cartão</th>
+              <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Situação</th>
+              <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            {% for expense in recurring_expenses %}
+              <tr class="transition-colors hover:bg-slate-800/40">
+                <td class="px-5 py-4">
+                  <span class="font-medium text-slate-100">{{ expense.title }}</span>
+                  {% if expense.category %}
+                    <p class="mt-0.5 text-xs text-slate-500">{{ expense.category.name }}</p>
+                  {% endif %}
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4 text-right font-semibold tabular-nums text-rose-400">
+                  − R$ {{ expense.amount|floatformat:"2g" }}
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4 text-slate-300">
+                  <span class="tabular-nums">Dia {{ expense.due_day }}</span>
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4">
+                  <span class="inline-flex items-center rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-0.5 text-xs font-medium text-cyan-400">
+                    {{ expense.get_billing_cycle_display }}
+                  </span>
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4">
+                  {% if expense.is_on_credit_card %}
+                    <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">
+                      Cartão
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-400">
+                      Conta
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4">
+                  {% if expense.is_active %}
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+                      <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                      Ativa
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-400">
+                      <span class="h-1.5 w-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                      Inativa
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td class="whitespace-nowrap px-5 py-4">
+                  <div class="flex items-center justify-end gap-2">
+                    <a href="{% url 'transactions:recurring_update' expense.pk %}"
+                       class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                       aria-label="Editar despesa fixa {{ expense.title }}">
+                      Editar
+                    </a>
+                    <a href="{% url 'transactions:recurring_delete' expense.pk %}"
+                       class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                       aria-label="Excluir despesa fixa {{ expense.title }}">
+                      Excluir
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% else %}
+    {% url 'transactions:recurring_create' as criar_fixa_url %}
+    {% include 'partials/_empty_state.html' with title='Nenhuma despesa fixa cadastrada' description='Cadastre aluguel, internet, assinaturas e outras contas que se repetem todo mês para prever quanto sai da sua conta.' action_url=criar_fixa_url action_label='Nova despesa fixa' %}
+  {% endif %}
+{% endblock %}

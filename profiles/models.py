@@ -1,19 +1,12 @@
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from core.models import BaseModel
+from core.models import ZERO, BaseModel, to_money
 
-ZERO = Decimal('0.00')
 ONE_HUNDRED = Decimal('100.00')
-MONEY_PLACES = Decimal('0.01')
-
-
-def to_money(value):
-    """Round a decimal value to two places using half-up rounding."""
-    return Decimal(value).quantize(MONEY_PLACES, rounding=ROUND_HALF_UP)
 
 
 class UserProfile(BaseModel):

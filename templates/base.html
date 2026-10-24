@@ -89,25 +89,29 @@
           {% if current_app == 'categories' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
         </a>
 
-        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <a href="{% url 'transactions:list' %}"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {% if current_app == 'transactions' %}bg-slate-800 text-slate-100{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-slate-200{% endif %}"
+           {% if current_app == 'transactions' %}aria-current="page"{% endif %}>
+          <svg class="h-5 w-5 shrink-0 {% if current_app == 'transactions' %}text-emerald-400{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M3 7h13a2 2 0 012 2v8a2 2 0 01-2 2H3z"></path>
             <path d="M18 10h3v6h-3"></path>
             <circle cx="7" cy="13" r="1.5"></circle>
           </svg>
           <span>Transações &amp; Fatura</span>
-          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
-        </div>
+          {% if current_app == 'transactions' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
+        </a>
 
-        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <a href="{% url 'goals:list' %}"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {% if current_app == 'goals' or current_app == 'goals_events' %}bg-slate-800 text-slate-100{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-slate-200{% endif %}"
+           {% if current_app == 'goals' or current_app == 'goals_events' %}aria-current="page"{% endif %}>
+          <svg class="h-5 w-5 shrink-0 {% if current_app == 'goals' or current_app == 'goals_events' %}text-emerald-400{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
             <path d="M3 8v8l9 5 9-5V8"></path>
             <path d="M12 13v8"></path>
           </svg>
           <span>Caixinhas &amp; Eventos</span>
-          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
-        </div>
+          {% if current_app == 'goals' or current_app == 'goals_events' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
+        </a>
 
         <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
           <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
