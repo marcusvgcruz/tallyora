@@ -5,10 +5,11 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.urls import reverse
 
 from users.models import CustomUser
 
-from .models import EventExpenseItem, EventPlan
+from .models import EventExpenseItem, EventPlan, GoalBox
 
 ZERO = Decimal('0.00')
 COST = Decimal('1000.00')
@@ -201,3 +202,161 @@ class EventPlanContributionTest(TestCase):
             event.monthly_contribution(Decimal('0.00')),
             ZERO,
         )
+
+
+class EventPlanListPaginationTests(TestCase):
+    """Pagination and name search of the event list."""
+
+    def setUp(self):
+        """Create twelve events for one user."""
+        self.user = CustomUser.objects.create_user(
+            email='eventos@example.com',
+            password='secret123',
+        )
+        self.client.force_login(self.user)
+        self.url = reverse('goals:event_list')
+        for index in range(1, 13):
+            self.add_event(index)
+
+    def add_event(self, index, user=None, title=None):
+        """Create one event plan with a fixed title."""
+        return EventPlan.objects.create(
+            user=user or self.user,
+            title=title or f'Evento {index:02d}',
+            event_date=date(2027, 1, 10),
+        )
+
+    def test_first_page_holds_ten_of_two_pages(self):
+        """Ten cards on page 1 and two pages in total."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['event_plans']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertContains(response, 'Página 1 de 2')
+
+    def test_second_page_holds_the_remaining_two(self):
+        """Page 2 brings the two cards left by page 1."""
+        response = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['event_plans']), 2)
+        self.assertContains(response, 'Página 2 de 2')
+
+    def test_search_is_case_insensitive(self):
+        """The term finds the event name whatever the case typed."""
+        response = self.client.get(self.url, {'q': 'eVeNtO 04'})
+
+        self.assertEqual(len(response.context['event_plans']), 1)
+        self.assertContains(response, 'Evento 04')
+        self.assertContains(response, 'value="eVeNtO 04"')
+
+    def test_search_without_match_uses_the_search_empty_state(self):
+        """A term without results shows its own empty message."""
+        response = self.client.get(self.url, {'q': 'formatura'})
+
+        self.assertEqual(len(response.context['event_plans']), 0)
+        self.assertContains(
+            response,
+            'Nenhum evento encontrado para “formatura”',
+        )
+        self.assertNotContains(response, 'Nenhum evento planejado')
+
+    def test_pagination_link_keeps_the_search_query(self):
+        """The next page link carries the term typed in the search."""
+        response = self.client.get(self.url, {'q': 'Evento'})
+
+        self.assertContains(response, '?q=Evento')
+        self.assertContains(response, 'page=2')
+
+    def test_pagination_never_shows_another_user_item(self):
+        """The pages only bring events of the logged user."""
+        other = CustomUser.objects.create_user(
+            email='eventos2@example.com',
+            password='secret123',
+        )
+        for index in range(1, 13):
+            self.add_event(
+                index,
+                user=other,
+                title=f'Alheio {index:02d}',
+            )
+
+        response = self.client.get(self.url)
+        page_two = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['event_plans']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertEqual(len(page_two.context['event_plans']), 2)
+        self.assertContains(response, 'Evento')
+        self.assertNotContains(response, 'Alheio')
+        self.assertNotContains(page_two, 'Alheio')
+
+
+class GoalBoxListPaginationTests(TestCase):
+    """Pagination of the savings box list."""
+
+    def setUp(self):
+        """Create twelve savings boxes for one user."""
+        self.user = CustomUser.objects.create_user(
+            email='caixinhas@example.com',
+            password='secret123',
+        )
+        self.client.force_login(self.user)
+        self.url = reverse('goals:list')
+        for index in range(1, 13):
+            self.add_box(index)
+
+    def add_box(self, index, user=None, name=None):
+        """Create one savings box with a fixed name."""
+        return GoalBox.objects.create(
+            user=user or self.user,
+            name=name or f'Caixa {index:02d}',
+            current_balance=Decimal('100.00'),
+            target_amount=Decimal('1000.00'),
+        )
+
+    def test_first_page_holds_ten_of_two_pages(self):
+        """Ten cards on page 1 and two pages in total."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['goal_boxes']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertContains(response, 'Página 1 de 2')
+
+    def test_second_page_holds_the_remaining_two(self):
+        """Page 2 brings the two cards left by page 1."""
+        response = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['goal_boxes']), 2)
+
+    def test_totals_count_every_page(self):
+        """The balances are not limited to the visible page."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.context['total_balance'],
+            Decimal('1200.00'),
+        )
+
+    def test_pagination_never_shows_another_user_item(self):
+        """The pages only bring boxes of the logged user."""
+        other = CustomUser.objects.create_user(
+            email='caixinhas2@example.com',
+            password='secret123',
+        )
+        for index in range(1, 13):
+            self.add_box(
+                index,
+                user=other,
+                name=f'Alheia {index:02d}',
+            )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['goal_boxes']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertEqual(
+            response.context['total_balance'],
+            Decimal('1200.00'),
+        )
+        self.assertContains(response, 'Caixa')
+        self.assertNotContains(response, 'Alheia')

@@ -48,7 +48,7 @@ Comandos do dia a dia:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
-docker compose exec web python manage.py test          # 124 testes, no Postgres
+docker compose exec web python manage.py test          # 187 testes, no Postgres
 docker compose exec web python manage.py check
 docker compose exec web python manage.py shell
 docker compose exec db psql -U tallyora -d tallyora     # console do banco
@@ -65,13 +65,16 @@ Ajustes:
 - A porta **5432 do host não é publicada** — de propósito, para não conflitar
   com o PostgreSQL da VPS. O Django fala com o banco pela rede interna do
   compose (`db:5432`).
-- O servidor na imagem é o `runserver` (`python manage.py runserver
-  0.0.0.0:8000`), porque **`gunicorn` não está no `requirements.txt`**. Para
-  produção de verdade, adicione `gunicorn` ao requirements e troque o `CMD`.
-- O build **não** roda `tailwind build` nem `collectstatic`: o CSS é
-  versionado em `theme/static/css/dist/styles.css` (o CLI do Tailwind baixa
-  binário da internet e quebraria o build offline) e o `collectstatic` exige
-  `STATIC_ROOT`, que ainda não está definido em `core/settings.py`.
+- O servidor na imagem é o **`gunicorn`** (3 workers), não o `runserver`.
+  Na entrada do container: `migrate --noinput` → `collectstatic --noinput` →
+  `gunicorn core.wsgi:application`. O `collectstatic` roda aqui, e não no
+  build, porque precisa do `SECRET_KEY` do `.env`.
+- Os estáticos coletados são servidos pelo **WhiteNoise** (com hash no nome),
+  então não precisa de nginx para o CSS/JS.
+- O build **não** roda `tailwind build`: o CSS é versionado em
+  `theme/static/css/dist/styles.css` (o CLI do Tailwind baixa binário da
+  internet e quebraria o build offline). Depois de mexer em template, rode
+  `python manage.py tailwind build` na máquina e rebuilda a imagem.
 - Se `docker compose config` imprimir avisos `variable "bg"/"c" is not set`,
   é o `$` da `SECRET_KEY` do `.env` sendo lido como interpolação. É inofensivo:
   o container recebe a chave literal via `env_file`.

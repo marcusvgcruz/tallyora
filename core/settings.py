@@ -68,6 +68,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -175,6 +176,16 @@ if (BASE_DIR / 'static').is_dir():
 # Destination of ``collectstatic`` (used by the container/production).
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise serves the collected files under gunicorn (no nginx needed).
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': ('whitenoise.storage.CompressedManifestStaticFilesStorage'),
+    },
+}
+
 # Project translations on top of the Django catalogue.
 LOCALE_PATHS = [BASE_DIR / 'locale']
 
@@ -184,13 +195,32 @@ LOCALE_PATHS = [BASE_DIR / 'locale']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# Email
+# Email — Django 6.1 configura pelo dicionário ``MAILERS``.
+# Sem SMTP no .env, a mensagem (ex.: redefinição de senha) sai no terminal.
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', 'Tallyora <nao-responda@tallyora.local>'
+)
+
+if os.environ.get('EMAIL_HOST'):
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+            'OPTIONS': {
+                'host': os.environ['EMAIL_HOST'],
+                'port': int(os.environ.get('EMAIL_PORT') or 587),
+                'username': os.environ.get('EMAIL_HOST_USER', ''),
+                'password': os.environ.get('EMAIL_HOST_PASSWORD', ''),
+                'use_tls': env_bool('EMAIL_USE_TLS', True),
+            },
+        },
+    }
+else:
+    MAILERS = {
+        'default': {
+            'BACKEND': 'django.core.mail.backends.console.EmailBackend',
+        },
+    }
 
 
 # Tailwind CSS

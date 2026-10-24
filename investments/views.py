@@ -14,12 +14,17 @@ from core.models import ZERO, to_money
 
 from .forms import AllocationTargetFormSet, InvestmentAssetForm
 from .models import AssetAllocationTarget, AssetClass, InvestmentAsset
-from .services import QuoteUpdaterService
+from .services import (
+    ACTION_BUY,
+    ACTION_WAIT,
+    QuoteUpdaterService,
+    asset_weights,
+)
 
 ONE_HUNDRED = Decimal('100.00')
 PORTFOLIO_URL = reverse_lazy('investments:portfolio')
-BADGE_BUY = 'APORTAR'
-BADGE_WAIT = 'AGUARDAR'
+BADGE_BUY = ACTION_BUY
+BADGE_WAIT = ACTION_WAIT
 FORMSET_PREFIX = 'targets'
 TARGETS_TOTAL_LIMIT = 'A soma das metas por classe não pode passar de 100%.'
 TARGETS_DUPLICATED = 'Cada classe de ativo pode ter apenas uma meta.'
@@ -38,6 +43,21 @@ def _user_targets(user):
     return AssetAllocationTarget.objects.filter(user=user)
 
 
+def annotate_weights(assets):
+    """Attach the weight inside the class to each asset instance.
+
+    Templates read the values as plain attributes, and the returned map
+    keeps the same rows available for the tests and for the context.
+    """
+    rows = asset_weights(assets)
+    for asset in assets:
+        row = rows[asset.pk]
+        asset.class_weight = row['weight']
+        asset.class_weight_target = row['target']
+        asset.class_weight_action = row['action']
+    return rows
+
+
 class PortfolioDashboardView(LoginRequiredMixin, TemplateView):
     """Dashboard of the user portfolio, with allocation by class."""
 
@@ -51,6 +71,7 @@ class PortfolioDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         assets = list(self.get_queryset())
         targets = AssetAllocationTarget.targets_by_class(self.request.user)
+        weights = annotate_weights(assets)
 
         total_value = to_money(
             sum((asset.current_total_value for asset in assets), ZERO)
@@ -84,6 +105,7 @@ class PortfolioDashboardView(LoginRequiredMixin, TemplateView):
                 'assets': assets,
                 'assets_by_class': assets_by_class,
                 'class_summary': class_summary,
+                'asset_weights': weights,
                 'total_value': total_value,
                 'total_invested': total_invested,
                 'profit_loss_amount': profit_loss,
@@ -237,7 +259,7 @@ class RefreshQuotesView(LoginRequiredMixin, View):
         else:
             message = 'Nenhuma cotação foi atualizada'
         if skipped:
-            message += f', {skipped} ativo(s) com cotação manual'
+            message += f', {skipped} ativo(s) sem cotação automática'
         if failed:
             tickers = ', '.join(item['ticker'] for item in result['failed'])
             message += f', {failed} falha(s): {tickers}'

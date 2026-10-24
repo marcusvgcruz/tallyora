@@ -45,9 +45,6 @@ services:
       # 8080 no host -> 8000 no container. Na VPS a 8080 pode estar
       # ocupada (evolution_api): rode WEB_PORT=8081 docker compose up.
       - "${WEB_PORT:-8080}:8000"
-    command: >
-      sh -c "python manage.py migrate --noinput &&
-             python manage.py runserver 0.0.0.0:8000"
     restart: unless-stopped
 
 volumes:

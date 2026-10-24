@@ -1,0 +1,124 @@
+{% load static tailwind_tags %}<!DOCTYPE html>
+<html lang="pt-br" class="scroll-smooth overflow-x-clip">
+<head>
+  {% comment %}
+  ``overflow-x-clip`` no <html> contém os brilhos decorativos (blur) que passam
+  do container. ``clip`` não cria área de rolagem, então o header sticky segue
+  funcionando e a página não rola na horizontal em 360–1440px.
+  {% endcomment %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Tallyora — saiba para onde vai cada real{% endblock %}</title>
+  <meta name="description" content="Tallyora organiza receitas, despesas, fatura do cartão, caixinhas, eventos e investimentos em um único painel e mostra o saldo livre que sobra de verdade no fim do mês.">
+  <meta name="theme-color" content="#020617">
+  <meta name="color-scheme" content="dark">
+
+  {% tailwind_css %}
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen bg-slate-950 font-sans text-slate-200 antialiased">
+
+  <a href="#conteudo"
+     class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-500 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-slate-950">
+    Pular para o conteúdo
+  </a>
+
+  {# ---------- Cabeçalho fixo ---------- #}
+  <header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/75 backdrop-blur-xl">
+    <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:h-20 lg:px-8">
+
+      <a href="{% url 'core:landing' %}"
+         class="flex shrink-0 items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+         aria-label="Tallyora — página inicial">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950" aria-hidden="true">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 17l5-5 3 3 7-7"></path>
+            <path d="M14 8h5v5"></path>
+          </svg>
+        </span>
+        <span class="text-lg font-extrabold tracking-tight text-slate-100 sm:text-xl">Tallyora</span>
+      </a>
+
+      <nav class="hidden items-center gap-1 lg:flex" aria-label="Seções da página">
+        <a href="#recursos"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+          Funcionalidades
+        </a>
+        <a href="#comparacao"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+          Por que usar
+        </a>
+        <a href="#como-funciona"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+          Como funciona
+        </a>
+        <a href="#saldo-livre"
+           class="rounded-lg px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+          Saldo livre
+        </a>
+      </nav>
+
+      <div class="flex shrink-0 items-center gap-2">
+        <a href="{% url 'users:login' %}"
+           class="inline-flex min-h-11 items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:px-4">
+          Entrar
+        </a>
+        <a href="{% url 'users:register' %}"
+           class="inline-flex min-h-11 items-center justify-center rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 sm:px-4">
+          Criar conta
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="conteudo" class="w-full">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# ---------- Rodapé ---------- #}
+  <footer class="border-t border-slate-800 bg-slate-950">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-8">
+
+      <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex max-w-sm flex-col gap-3">
+          <div class="flex items-center gap-2.5">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-400 text-slate-950" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 17l5-5 3 3 7-7"></path>
+                <path d="M14 8h5v5"></path>
+              </svg>
+            </span>
+            <span class="text-base font-bold tracking-tight text-slate-100">Tallyora</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-400">
+            Organização financeira pessoal para quem quer clareza — não planilha.
+          </p>
+        </div>
+
+        <nav class="flex flex-col gap-2 text-sm" aria-label="Acesso à conta no rodapé">
+          <span class="text-xs font-medium uppercase tracking-wider text-slate-500">Conta</span>
+          <a href="{% url 'users:login' %}"
+             class="w-fit rounded py-1.5 text-slate-300 transition-colors hover:text-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+            Entrar
+          </a>
+          <a href="{% url 'users:register' %}"
+             class="w-fit rounded py-1.5 text-slate-300 transition-colors hover:text-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+            Criar conta
+          </a>
+        </nav>
+      </div>
+
+      <div class="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-xs text-slate-500">© {% now "Y" %} Tallyora. Todos os valores em reais (R$).</p>
+        <p class="max-w-xl text-xs leading-relaxed text-slate-500">
+          O Tallyora é uma ferramenta de organização financeira. As cotações são informativas e o
+          aplicativo não faz recomendação de investimento.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,5 +1,8 @@
+import os
 from datetime import time
+from unittest.mock import patch
 
+from django.contrib.messages import get_messages
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
@@ -8,6 +11,13 @@ from django.utils import timezone
 from users.models import CustomUser
 
 from .models import DailyReminder
+
+SERVICE_PATH = 'reminders.views.GoogleCalendarSyncService'
+EMPTY_CREDENTIALS = {
+    'GOOGLE_CLIENT_ID': '',
+    'GOOGLE_CLIENT_SECRET': '',
+    'GOOGLE_REFRESH_TOKEN': '',
+}
 
 
 class DailyReminderModelTests(TestCase):
@@ -130,3 +140,115 @@ class ReminderViewsTests(TestCase):
             reverse('reminders:delete', args=[alheio.pk])
         )
         self.assertEqual(resposta.status_code, 404)
+
+
+def _message_texts(response):
+    """Return the messages queued for ``response`` as plain strings."""
+    return [str(message) for message in get_messages(response.wsgi_request)]
+
+
+class ReminderSyncViewTests(TestCase):
+    """The manual Google Calendar sync only runs on POST."""
+
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='sync@tallyora.test',
+            password='Zx9#pKq7wLm2',
+        )
+
+    def test_sync_refuses_get(self):
+        """A GET on the sync route answers 405."""
+        self.client.force_login(self.user)
+        resposta = self.client.get(reverse('reminders:sync'))
+        self.assertEqual(resposta.status_code, 405)
+
+    def test_sync_requires_login(self):
+        """An anonymous POST goes to the login page."""
+        resposta = self.client.post(reverse('reminders:sync'))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertIn(reverse('users:login'), resposta.url)
+
+    def test_sync_without_credentials_warns(self):
+        """No OAuth2 variable means a warning and no new reminder."""
+        self.client.force_login(self.user)
+        with patch.dict(os.environ, EMPTY_CREDENTIALS):
+            resposta = self.client.post(reverse('reminders:sync'))
+        mensagens = _message_texts(resposta)
+        self.assertEqual(len(mensagens), 1)
+        self.assertIn('Google Calendar não está configurado', mensagens[0])
+        self.assertEqual(DailyReminder.objects.count(), 0)
+        self.assertRedirects(resposta, reverse('reminders:list'))
+
+    def test_sync_calls_the_service_for_the_logged_user(self):
+        """The service receives the owner and the counts are reported."""
+        self.client.force_login(self.user)
+        result = {'created': 2, 'updated': 1, 'deleted': 0, 'errors': []}
+        with patch(SERVICE_PATH) as service_class:
+            service = service_class.return_value
+            service.is_configured = True
+            service.sync_today.return_value = result
+            resposta = self.client.post(reverse('reminders:sync'))
+        service_class.assert_called_once_with(self.user)
+        service.sync_today.assert_called_once_with()
+        mensagens = _message_texts(resposta)
+        self.assertEqual(len(mensagens), 1)
+        self.assertIn('2 eventos importados', mensagens[0])
+        self.assertIn('1 atualizado', mensagens[0])
+        self.assertRedirects(resposta, reverse('reminders:list'))
+
+    def test_sync_failure_keeps_the_manual_reminder(self):
+        """An API failure answers an error and deletes nothing."""
+        self.client.force_login(self.user)
+        DailyReminder.objects.create(
+            user=self.user, title='Manual', scheduled_time=time(8, 0)
+        )
+        result = {
+            'created': 0,
+            'updated': 0,
+            'deleted': 0,
+            'errors': ['falha de rede: timed out'],
+        }
+        with patch(SERVICE_PATH) as service_class:
+            service = service_class.return_value
+            service.is_configured = True
+            service.sync_today.return_value = result
+            resposta = self.client.post(reverse('reminders:sync'))
+        mensagens = _message_texts(resposta)
+        self.assertEqual(len(mensagens), 1)
+        self.assertIn('Nenhum lembrete foi apagado', mensagens[0])
+        self.assertTrue(DailyReminder.objects.filter(title='Manual').exists())
+        self.assertRedirects(resposta, reverse('reminders:list'))
+
+
+class ReminderPaginationTests(TestCase):
+    """The list shows ten reminders per page."""
+
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='pagina@tallyora.test',
+            password='Zx9#pKq7wLm2',
+        )
+        self.client.force_login(self.user)
+        for indice in range(12):
+            DailyReminder.objects.create(
+                user=self.user,
+                title=f'Lembrete {indice}',
+                scheduled_time=time(8, indice),
+            )
+
+    def test_first_page_has_ten_reminders(self):
+        """Twelve reminders fill two pages of ten and two."""
+        resposta = self.client.get(reverse('reminders:list'))
+        self.assertEqual(len(resposta.context['reminders']), 10)
+        self.assertEqual(resposta.context['paginator'].num_pages, 2)
+
+    def test_second_page_has_the_remaining_two(self):
+        """The last page keeps the two leftovers."""
+        resposta = self.client.get(reverse('reminders:list'), {'page': 2})
+        self.assertEqual(len(resposta.context['reminders']), 2)
+
+    def test_second_page_links_back_to_the_first(self):
+        """The pager keeps the querystring when moving pages."""
+        resposta = self.client.get(reverse('reminders:list'), {'page': 2})
+        self.assertContains(resposta, 'page=1')
+        self.assertContains(resposta, 'Página')

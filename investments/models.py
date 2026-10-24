@@ -183,6 +183,15 @@ class InvestmentAsset(BaseModel):
         return to_money(self.profit_loss_amount / invested * ONE_HUNDRED)
 
     @property
+    def is_crypto(self):
+        """Whether the asset is a crypto coin quoted on CoinGecko."""
+        return self.asset_class == AssetClass.CRYPTO
+
+    @property
     def is_quoted(self):
-        """Whether the asset has an automatic quote (B3 traded)."""
-        return self.asset_class in (AssetClass.FII, AssetClass.STOCK)
+        """Whether the asset has an automatic quote from a provider."""
+        return self.asset_class in (
+            AssetClass.FII,
+            AssetClass.STOCK,
+            AssetClass.CRYPTO,
+        )

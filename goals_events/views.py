@@ -28,13 +28,14 @@ class GoalBoxListView(LoginRequiredMixin, ListView):
     model = GoalBox
     template_name = 'goals_events/goalbox_list.html'
     context_object_name = 'goal_boxes'
+    paginate_by = 10
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        aggregates = context['goal_boxes'].aggregate(
+        aggregates = self.object_list.aggregate(
             total_balance=Sum('current_balance'),
             total_target=Sum('target_amount'),
         )
@@ -114,19 +115,29 @@ class EventPlanListView(LoginRequiredMixin, ListView):
     model = EventPlan
     template_name = 'goals_events/event_list.html'
     context_object_name = 'event_plans'
+    paginate_by = 10
+
+    @property
+    def search_query(self):
+        """Text typed in the search field, already stripped."""
+        return self.request.GET.get('q', '').strip()
 
     def get_queryset(self):
-        return (
+        queryset = (
             super()
             .get_queryset()
             .filter(user=self.request.user)
             .select_related('linked_goal_box')
             .prefetch_related('expense_items')
         )
+        query = self.search_query
+        if query:
+            queryset = queryset.filter(title__icontains=query)
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        event_plans = context['event_plans']
+        event_plans = self.object_list
         saved = sum(
             (plan.already_saved_amount for plan in event_plans),
             ZERO,
@@ -137,6 +148,7 @@ class EventPlanListView(LoginRequiredMixin, ListView):
         )
         context['total_saved'] = to_money(saved)
         context['total_needed'] = to_money(needed)
+        context['search_query'] = self.search_query
         context['title'] = 'Eventos'
         return context
 

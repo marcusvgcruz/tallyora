@@ -143,6 +143,25 @@ Chart.js 4.4.6 **local** (`theme/static/js/chart.umd.min.js`, sem CDN), dois an�
 
 O painel lateral do dashboard e a lista `reminders/reminder_list.html` mostram horário (`scheduled_label`) e título. **Não existe checkbox nem "concluído"**: lembrete é to-do sem check, por decisão de produto — ele sai da lista quando a data passa ou quando é excluído. Itens espelhados do Google Calendar levam a marca discreta `agenda`; a integração é opcional e, sem token, o painel apenas informa que não está configurada.
 
+### Badge de peso por ativo
+
+Além do badge por **classe**, cada ativo mostra o peso dele dentro da própria classe
+(`32,4%`, `tabular-nums`) com a ação de curto prazo. A referência é o alvo igualitário da
+classe (`100% ÷ número de ativos`), com tolerância de 1 ponto percentual:
+
+| Situação | Badge | Cor |
+| :--- | :--- | :--- |
+| abaixo do alvo igualitário | **Aportar** | amber |
+| dentro da tolerância | **Manter** | emerald |
+| acima do alvo igualitário | **Aguardar** | slate |
+
+### Paginação
+
+`templates/partials/pagination.html`, usado por todas as listas (10 itens por página):
+`Anterior` · `Página X de Y` · `Próxima`, com `{% querystring %}` preservando a busca,
+botão desabilitado (`aria-disabled`, `cursor-not-allowed`) nas bordas e exibição só quando
+há mais de uma página.
+
 ### Badge Aportar / Aguardar
 
 Compara o peso atual da classe com a meta: `Aportar` (abaixo da meta, esmeralda) ou `Aguardar` (na meta ou acima, slate). É a leitura de onde colocar o próximo aporte.

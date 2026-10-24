@@ -15,6 +15,7 @@ class AccountListView(LoginRequiredMixin, ListView):
     model = BankAccount
     template_name = 'accounts/account_list.html'
     context_object_name = 'accounts'
+    paginate_by = 10
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)

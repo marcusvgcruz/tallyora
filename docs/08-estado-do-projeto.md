@@ -1,15 +1,15 @@
 # 08 — Estado do Projeto
 
-Retrato do que existe em disco hoje (24/10/2026), verificado no código e no banco. O backlog completo e atualizado está em `../TASKS.md`.
+Retrato do que existe em disco hoje (24/10/2026), verificado no código e no banco. `PRD.md` e `TASKS.md` são documentos de construção: ficam na máquina de quem desenvolve e **não são versionados** (ver `.gitignore`).
 
-**Backlog concluído: Sprints 1 a 6 fechadas.** A Sprint 6 entregou PEP8 sem avisos (`flake8` 0), **124 testes automatizados** verdes em SQLite e em PostgreSQL, revisão de pt-BR nos 38 templates e a aplicação dockerizada (`web` + `db`). O `TASKS.md` não tem nenhum item em aberto.
+**Backlog concluído: Sprints 1 a 6 fechadas, mais uma rodada de pendências.** Hoje são **187 testes automatizados** verdes em SQLite e em PostgreSQL, `flake8` com 0 avisos, pt-BR revisado em todos os templates e a aplicação dockerizada rodando `gunicorn` + `collectstatic` + WhiteNoise. A landing pública foi refeita como página de conversão. O `TASKS.md` não tem nenhum item em aberto.
 
 ## Implementado
 
 | Item | Evidência |
 | :--- | :--- |
 | Ambiente virtual Python 3.12.3 | `venv/` com Django 6.1.2 e dependências instaladas |
-| `requirements.txt` com dependências fixadas | Django, psycopg2-binary, python-dotenv, django-tailwind, pytailwindcss, asgiref, sqlparse |
+| `requirements.txt` com dependências fixadas | Django, gunicorn, whitenoise, psycopg2-binary, python-dotenv, django-tailwind, pytailwindcss, asgiref, sqlparse. Ferramentas de desenvolvimento (`black`, `flake8`) em `requirements-dev.txt` |
 | PostgreSQL 16.15 provisionado | serviço `postgresql` ativo/habilitado; database e role `tallyora`; migrações aplicadas |
 | Configuração por ambiente | `core/settings.py` carrega `.env` com `python-dotenv`; `SECRET_KEY` obrigatória; `DEBUG`/`ALLOWED_HOSTS` tipados |
 | Localização | `LANGUAGE_CODE = 'pt-br'`, `TIME_ZONE = 'America/Sao_Paulo'`, I18N e TZ ativos |
@@ -67,13 +67,25 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 
 ## Próximos passos (fora do backlog atual)
 
+Resolvidas na rodada de pendências (24/10/2026):
+
+| Pendência | Como foi resolvida |
+| :--- | :--- |
+| Disparo da agenda | botão **"Sincronizar agenda"** na lista de lembretes (`POST /lembretes/sincronizar/`), com aviso quando falta credencial e erro sem apagar nada |
+| Cotações de cripto | `_fetch_coingecko` no `QuoteUpdaterService` (sem chave), com mapa de 12 tickers e `skipped` para par desconhecido |
+| Peso por ativo | badge de peso na classe + ação Aportar/Manter/Aguardar contra o alvo igualitário da classe (tolerância de 1 p.p.) |
+| Servidor de produção | `gunicorn` no `requirements.txt`; container roda `migrate` → `collectstatic` → `gunicorn`; WhiteNoise serve os estáticos |
+| Recuperação de senha | 4 rotas nativas do Django + 4 telas em pt-BR + e-mail (console em dev, SMTP via `MAILERS`+`OPTIONS`) |
+| Listagens | paginação de 10 itens nas 6 listas e busca por texto em transações e eventos |
+| Landing pública | página refeita: hero com mockup em HTML/CSS, comparação, 6 funcionalidades, 3 passos, extrato do saldo livre, CTA e rodapé |
+
+Ainda em aberto:
+
 | Tema | O que falta |
 | :--- | :--- |
-| Disparo da agenda | botão ou cron chamando `GoogleCalendarSyncService.sync_today()` |
-| Cotações | cripto (CoinGecko responde sem chave) e comparação do peso por **ativo**, não só por classe |
-| Deploy real | `gunicorn`/`uvicorn` + `collectstatic` servido por nginx, HTTPS e backup do Postgres |
-| Conta | recuperação de senha, verificação de e-mail e onboarding |
-| Listagens | paginação e busca onde a lista crescer |
+| Deploy público | domínio, HTTPS, backup do Postgres e `DEBUG=False` (hoje o `.env` local está em `dev`) |
+| Conta | verificação de e-mail no cadastro e onboarding guiado (o perfil é editado em `/perfil/`) |
+| Agenda | sincronização automática (cron) — hoje é disparo manual; nunca foi testada contra a API real do Google |
 
 ## Divergências entre o que está definido e o que está no disco
 

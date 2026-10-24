@@ -209,8 +209,11 @@ docker compose down       # derruba (mantém os dados)
 docker compose down -v    # derruba e apaga o volume do banco
 ```
 
-- O `web` roda `migrate --noinput` antes de subir o servidor; as 27 migrações aplicam
-  sozinhas no primeiro `up`.
+- O `web` roda `migrate --noinput` → `collectstatic --noinput` → **`gunicorn core.wsgi`**
+  (3 workers). O `collectstatic` roda na entrada do container porque depende do `.env`
+  (o `SECRET_KEY`) — não dá para fazê-lo no build sem vazar segredo em camada.
+- O WhiteNoise serve os estáticos coletados (`CompressedManifestStaticFilesStorage`), então
+  não é preciso nginx para o CSS/JS neste cenário.
 - **A porta 5432 não é publicada** — o banco só existe na rede interna do Compose, para
   não conflitar com um PostgreSQL instalado na máquina.
 - A porta do host é configurável: `WEB_PORT=8081 docker compose up -d` (o default é 8080;
@@ -218,9 +221,27 @@ docker compose down -v    # derruba e apaga o volume do banco
 - Sem `collectstatic` no build: o CSS do Tailwind é versionado em
   `theme/static/css/dist/` e o `runserver` serve os estáticos. Para uso atrás de um servidor
   de verdade, rode `python manage.py collectstatic` (destino: `staticfiles/`, não versionado).
-- O container usa `runserver` porque o `gunicorn` não está nas dependências do projeto —
-  trocar de servidor é decisão de deploy, não deste sprint.
+- Servidor: `gunicorn==23.0.0` está no `requirements.txt` (as ferramentas de
+  desenvolvimento ficam em `requirements-dev.txt`).
 - Testes dentro do container: `docker compose exec web python manage.py test`.
+
+## Recuperação de senha e e-mail
+
+O fluxo "esqueci minha senha" funciona sem SMTP: com `EMAIL_HOST` vazio, o Django imprime
+o e-mail no terminal (`console.EmailBackend`) — serve para desenvolvimento e testes.
+Para enviar de verdade, preencha no `.env`:
+
+```bash
+EMAIL_HOST=smtp.seudominio.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=no-reply@seudominio.com
+EMAIL_HOST_PASSWORD=...
+EMAIL_USE_TLS=True
+```
+
+O projeto usa o dicionário **`MAILERS`** (padrão do Django 6.1); as opções do backend SMTP
+vão dentro de `OPTIONS` (`host`, `port`, `username`, `password`, `use_tls`). Conviver com
+`EMAIL_BACKEND`/`EMAIL_HOST` soltos faz o Django 6.1 levantar `ImproperlyConfigured`.
 
 ## Versionamento
 

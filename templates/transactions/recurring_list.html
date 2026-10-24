@@ -121,6 +121,12 @@
           </tbody>
         </table>
       </div>
+
+      {% if page_obj.paginator.num_pages > 1 %}
+        <div class="border-t border-slate-800 px-5 py-4">
+          {% include 'partials/pagination.html' %}
+        </div>
+      {% endif %}
     </div>
   {% else %}
     {% url 'transactions:recurring_create' as criar_fixa_url %}

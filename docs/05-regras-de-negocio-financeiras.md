@@ -90,6 +90,11 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
   1. **B3 oficial** (`cotacao.b3.com.br/mds/api/v1/DailyFluctuationHistory/{ticker}`) — sem chave, é a fonte primária; devolve o último preço negociado.
   2. **brapi.dev** — usada só quando `BRAPI_TOKEN` está no `.env` (o plano gratuito exige token; sem ele a API responde 401). Até 10 tickers por chamada.
   3. **Yahoo Finance** — último recurso, um request por ticker.
+4. **CoinGecko** — cotações de **cripto**, sem chave:
+   `api.coingecko.com/api/v3/simple/price?ids=<id>&vs_currencies=brl`. Ticker fora do mapa
+   conhecido (BTC, ETH, SOL, XRP, ADA, DOGE, LTC, BNB, USDT, MATIC, DOT, LINK) não gera
+   requisição: fica em `skipped` com o motivo "cripto sem par conhecido no CoinGecko".
+   Cripto nunca passa pela B3 nem pelo Yahoo. Renda Fixa segue manual.
 - **Por que a B3 primeiro:** brapi sem token responde 401 e o Yahoo devolve 429 para IPs de servidor. Só a API oficial funciona sem cadastro — validado com cotações reais (PETR4, MXRF11, VALE3, ITSA4) nesta VPS.
 - **Fallback obrigatório (R01):** se a API falhar ou estourar *rate limit*, manter a última cotação válida no banco e permitir edição manual de `current_price`. Renda Fixa é atualizada manualmente.
 

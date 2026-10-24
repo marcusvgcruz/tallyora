@@ -1,0 +1,61 @@
+{% comment %}
+==========================================================================
+partials/pagination.html — barra de paginação das listagens.
+
+   Mostra 'Anterior' / 'Página X de Y' / 'Próxima' e mantém a query string
+   atual (busca, mês, ano, período), trocando apenas ``page``.
+
+   Interface de contexto:
+     page_obj   (Page, obrigatório)  Injetado por qualquer ListView com
+                                     ``paginate_by``.
+
+   Uso (dentro do card, só quando há mais de uma página):
+     {% if page_obj.paginator.num_pages > 1 %}
+       <div class="border-t border-slate-800 px-5 py-4">
+         {% include 'partials/pagination.html' %}
+       </div>
+     {% endif %}
+   ==========================================================================
+{% endcomment %}
+<nav class="flex flex-wrap items-center justify-between gap-3"
+     aria-label="Paginação">
+  {% if page_obj.has_previous %}
+    <a href="{% querystring page=page_obj.previous_page_number %}"
+       rel="prev"
+       class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-[13px] font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+      Anterior
+    </a>
+  {% else %}
+    <span aria-disabled="true"
+          class="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-[13px] font-medium text-slate-600">
+      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"></path>
+      </svg>
+      Anterior
+    </span>
+  {% endif %}
+
+  <p class="text-[13px] font-medium tabular-nums text-slate-400">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</p>
+
+  {% if page_obj.has_next %}
+    <a href="{% querystring page=page_obj.next_page_number %}"
+       rel="next"
+       class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2 text-[13px] font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      Próxima
+      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </a>
+  {% else %}
+    <span aria-disabled="true"
+          class="inline-flex cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900/60 px-3.5 py-2 text-[13px] font-medium text-slate-600">
+      Próxima
+      <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 18l6-6-6-6"></path>
+      </svg>
+    </span>
+  {% endif %}
+</nav>

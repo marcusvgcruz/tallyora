@@ -99,6 +99,12 @@
           </div>
         </section>
       </div>
+
+      {% if page_obj.paginator.num_pages > 1 %}
+        <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-4 shadow-xl backdrop-blur-md">
+          {% include 'partials/pagination.html' %}
+        </div>
+      {% endif %}
     {% else %}
       {% url 'categories:create' as criar_categoria_url %}
       {% include 'partials/_empty_state.html' with title='Nenhuma categoria cadastrada' description='Cadastre categorias de receita e despesa para classificar seus lançamentos e enxergar para onde o dinheiro vai.' action_url=criar_categoria_url action_label='Cadastrar categoria' %}

@@ -24,13 +24,26 @@
         até a data passar ou até você excluir.
       </p>
     </div>
-    <a href="{% url 'reminders:create' %}"
-       class="inline-flex w-fit items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
-      <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 5v14M5 12h14"></path>
-      </svg>
-      Novo lembrete
-    </a>
+    <div class="flex flex-wrap items-center gap-2">
+      <form method="post" action="{% url 'reminders:sync' %}" class="w-fit">
+        {% csrf_token %}
+        <button type="submit"
+                class="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+            <path d="M21 3v6h-6"></path>
+          </svg>
+          Sincronizar agenda
+        </button>
+      </form>
+      <a href="{% url 'reminders:create' %}"
+         class="inline-flex w-fit items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        Novo lembrete
+      </a>
+    </div>
   </div>
 
   {% if today_reminders or next_days_reminders %}
@@ -137,6 +150,12 @@
     {% url 'reminders:create' as novo_lembrete_url %}
     <div class="mt-6">
       {% include 'partials/_empty_state.html' with title='Nenhum lembrete cadastrado' description='Anote contas a pagar, consultas e recados do dia. O lembrete aparece no painel do Dashboard enquanto a data não passa.' action_url=novo_lembrete_url action_label='Novo lembrete' %}
+    </div>
+  {% endif %}
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-5 py-4">
+      {% include 'partials/pagination.html' %}
     </div>
   {% endif %}
 {% endblock %}

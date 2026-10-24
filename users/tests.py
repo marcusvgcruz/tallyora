@@ -1,9 +1,15 @@
 """Automated tests for the e-mail based authentication of Tallyora."""
 
+import re
+
 from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from .forms import UserRegistrationForm
 
@@ -193,3 +199,198 @@ class UserRegistrationFormTests(TestCase):
             form.errors['email'],
             ['Já existe uma conta com este e-mail.'],
         )
+
+
+class PasswordResetPageTests(TestCase):
+    """The four password reset screens are public and render in pt-BR."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email=EMAIL,
+            password=PASSWORD,
+        )
+
+    def reset_link(self):
+        """Build a valid reset link for the user, as the e-mail does."""
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+        return reverse(
+            'users:password_reset_confirm',
+            kwargs={'uidb64': uidb64, 'token': token},
+        )
+
+    def test_reset_form_page_renders(self):
+        response = self.client.get(reverse('users:password_reset'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Recuperar senha')
+
+    def test_reset_done_page_renders(self):
+        response = self.client.get(reverse('users:password_reset_done'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Verifique seu e-mail')
+
+    def test_reset_confirm_page_renders_for_a_valid_link(self):
+        response = self.client.get(self.reset_link(), follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Criar nova senha')
+
+    def test_reset_confirm_page_explains_an_invalid_link(self):
+        response = self.client.get(
+            reverse(
+                'users:password_reset_confirm',
+                kwargs={'uidb64': 'invalido', 'token': 'expirado'},
+            )
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Link inválido ou expirado')
+
+    def test_reset_complete_page_renders(self):
+        response = self.client.get(reverse('users:password_reset_complete'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Senha redefinida')
+
+    def test_login_page_links_to_the_reset_form(self):
+        response = self.client.get(reverse('users:login'))
+        self.assertContains(response, 'Esqueci minha senha')
+        self.assertContains(response, reverse('users:password_reset'))
+
+
+class PasswordResetRequestTests(TestCase):
+    """Requesting the reset link by e-mail, without leaking accounts."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email=EMAIL,
+            password=PASSWORD,
+        )
+
+    def request_reset(self, email=EMAIL):
+        return self.client.post(
+            reverse('users:password_reset'),
+            {'email': email},
+        )
+
+    def test_request_for_a_known_email_sends_one_message(self):
+        self.request_reset()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [EMAIL])
+
+    def test_request_uses_the_pt_br_subject(self):
+        self.request_reset()
+        self.assertEqual(
+            mail.outbox[0].subject,
+            'Redefinição de senha no Tallyora',
+        )
+
+    def test_message_body_carries_the_reset_link(self):
+        self.request_reset()
+        body = mail.outbox[0].body
+        self.assertIn('http://testserver/recuperar-senha/', body)
+
+    def test_request_redirects_to_the_done_page(self):
+        response = self.request_reset()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response['Location'],
+            reverse('users:password_reset_done'),
+        )
+
+    def test_request_for_an_unknown_email_sends_no_message(self):
+        self.request_reset(email='ninguem@example.com')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_unknown_email_gets_the_same_response_as_a_known_one(self):
+        known = self.request_reset()
+        mail.outbox.clear()
+        unknown = self.request_reset(email='ninguem@example.com')
+        self.assertEqual(unknown.status_code, known.status_code)
+        self.assertEqual(unknown['Location'], known['Location'])
+
+
+class PasswordResetFlowTests(TestCase):
+    """The link sent by e-mail really changes the password."""
+
+    LINK_PATTERN = re.compile(
+        r'/recuperar-senha/(?P<uidb64>[^/\s]+)/(?P<token>[^/\s]+)/'
+    )
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email=EMAIL,
+            password=PASSWORD,
+        )
+        self.new_password = 'NovaSenha#2026'
+
+    def credentials_from_the_email(self):
+        """Read the uid and the token out of the message body."""
+        match = self.LINK_PATTERN.search(mail.outbox[0].body)
+        self.assertIsNotNone(match, mail.outbox[0].body)
+        return match.group('uidb64'), match.group('token')
+
+    def reset_password_with_the_email(self):
+        """Request the e-mail, follow the link and submit a new password."""
+        mail.outbox.clear()
+        self.client.post(
+            reverse('users:password_reset'),
+            {'email': EMAIL},
+        )
+        uidb64, token = self.credentials_from_the_email()
+        link = reverse(
+            'users:password_reset_confirm',
+            kwargs={'uidb64': uidb64, 'token': token},
+        )
+        opened = self.client.get(link, follow=True)
+        return self.client.post(
+            opened.request['PATH_INFO'],
+            {
+                'new_password1': self.new_password,
+                'new_password2': self.new_password,
+            },
+        )
+
+    def test_the_email_link_redirects_to_the_complete_page(self):
+        response = self.reset_password_with_the_email()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response['Location'],
+            reverse('users:password_reset_complete'),
+        )
+
+    def test_the_new_password_replaces_the_old_one(self):
+        self.reset_password_with_the_email()
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(self.new_password))
+        self.assertFalse(self.user.check_password(PASSWORD))
+
+    def test_login_works_with_the_new_password(self):
+        self.reset_password_with_the_email()
+        self.assertTrue(
+            self.client.login(
+                username=EMAIL,
+                password=self.new_password,
+            )
+        )
+
+    def test_the_login_page_accepts_the_new_password(self):
+        self.reset_password_with_the_email()
+        response = self.client.post(
+            reverse('users:login'),
+            {'username': EMAIL, 'password': self.new_password},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('core:dashboard'))
+
+    def test_the_link_stops_working_after_the_reset(self):
+        mail.outbox.clear()
+        self.client.post(
+            reverse('users:password_reset'),
+            {'email': EMAIL},
+        )
+        uidb64, token = self.credentials_from_the_email()
+        used_link = reverse(
+            'users:password_reset_confirm',
+            kwargs={'uidb64': uidb64, 'token': token},
+        )
+        self.reset_password_with_the_email()
+        response = self.client.get(used_link)
+        self.assertContains(response, 'Link inválido ou expirado')

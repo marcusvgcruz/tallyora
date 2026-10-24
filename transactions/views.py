@@ -28,6 +28,7 @@ class TransactionListView(LoginRequiredMixin, ListView):
     model = Transaction
     template_name = 'transactions/transaction_list.html'
     context_object_name = 'transactions'
+    paginate_by = 10
 
     @property
     def period(self):
@@ -36,9 +37,14 @@ class TransactionListView(LoginRequiredMixin, ListView):
             self._period = Period.from_query(self.request.GET)
         return self._period
 
+    @property
+    def search_query(self):
+        """Text typed in the search field, already stripped."""
+        return self.request.GET.get('q', '').strip()
+
     def get_queryset(self):
         period = self.period
-        return (
+        queryset = (
             super()
             .get_queryset()
             .filter(
@@ -47,6 +53,10 @@ class TransactionListView(LoginRequiredMixin, ListView):
                 reference_date__lte=period.end_date,
             )
         )
+        query = self.search_query
+        if query:
+            queryset = queryset.filter(title__icontains=query)
+        return queryset
 
     def get_totals(self, queryset):
         """Totals of each transaction type inside the filtered period."""
@@ -77,7 +87,8 @@ class TransactionListView(LoginRequiredMixin, ListView):
         }
         context['period_choices'] = PERIOD_CHOICES
         context['month_names'] = MONTH_NAMES
-        context['totals'] = self.get_totals(context['transactions'])
+        context['search_query'] = self.search_query
+        context['totals'] = self.get_totals(self.object_list)
         context['title'] = 'Transações'
         return context
 
@@ -160,15 +171,14 @@ class RecurringExpenseListView(LoginRequiredMixin, ListView):
     model = RecurringExpense
     template_name = 'transactions/recurring_list.html'
     context_object_name = 'recurring_expenses'
+    paginate_by = 10
 
     def get_queryset(self):
         return super().get_queryset().filter(user=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        total = context['recurring_expenses'].aggregate(total=Sum('amount'))[
-            'total'
-        ]
+        total = self.object_list.aggregate(total=Sum('amount'))['total']
         context['total'] = to_money(total or ZERO)
         context['title'] = 'Despesas fixas'
         return context

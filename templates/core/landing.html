@@ -1,172 +1,636 @@
-{% extends 'base_public.html' %}
+{% extends 'core/_landing_base.html' %}
+{% load static %}
 
-{% block title %}Tallyora — Clareza financeira para CLT e PJ{% endblock %}
+{% block title %}Tallyora — saiba para onde vai cada real do seu mês{% endblock %}
 
 {% block content %}
 
-  {# ---------- Hero ---------- #}
-  <section class="relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-16 backdrop-blur-md sm:px-10 lg:py-20">
-    <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true"></div>
-    <div class="pointer-events-none absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden="true"></div>
+  {% comment %} Hero — proposta de valor + prévia do painel (HTML/CSS puro) {% endcomment %}
+  <section class="relative overflow-hidden border-b border-slate-800/60" aria-labelledby="hero-titulo">
+    <div class="pointer-events-none absolute -top-56 left-1/2 h-[34rem] w-[34rem] -translate-x-1/2 rounded-full bg-emerald-500/10 blur-3xl" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -bottom-40 right-0 h-72 w-72 rounded-full bg-cyan-500/10 blur-3xl" aria-hidden="true"></div>
 
-    <div class="relative max-w-3xl">
-      <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1 text-xs font-medium text-emerald-400">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
-        Planejamento financeiro pessoal
-      </span>
+    <div class="relative mx-auto flex w-full max-w-7xl flex-col gap-14 px-4 pb-16 pt-12 sm:px-6 sm:pt-16 lg:flex-row lg:items-center lg:gap-14 lg:px-8 lg:pb-24 lg:pt-20">
 
-      <h1 class="mt-6 text-4xl font-extrabold leading-tight tracking-tight text-slate-100 sm:text-5xl">
-        Saiba exatamente
-        <span class="bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">quanto sobra na sua conta</span>
-        no fim do mês.
-      </h1>
+      <div class="flex w-full flex-col items-start lg:w-[52%]">
+        <span class="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900/70 px-3 py-1 text-xs font-medium text-slate-300">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>
+          Finanças pessoais com o mês fechando no azul
+        </span>
 
-      <p class="mt-5 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
-        O Tallyora transforma a precisão de uma planilha financeira avançada em uma plataforma simples:
-        entradas brutas, descontos de folha, despesas fixas, fatura do cartão sem duplicidade, caixinhas e
-        investimentos — tudo no mesmo lugar, em modo escuro.
-      </p>
+        <h1 id="hero-titulo" class="mt-5 text-balance text-[2rem] font-bold leading-[1.12] tracking-tight text-slate-100 sm:text-5xl lg:text-[3.4rem]">
+          Saiba para onde vai
+          <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">cada real</span>
+          do seu mês.
+        </h1>
 
-      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-        <a href="{% url 'users:register' %}"
-           class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300">
-          Cadastre-se
-        </a>
-        <a href="{% url 'users:login' %}"
-           class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700">
-          Entrar
-        </a>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-slate-400 sm:text-lg">
+          Receitas, despesas fixas, fatura do cartão, caixinhas, eventos e investimentos
+          em um único painel. No fim, um número só: o saldo livre que sobra de verdade.
+        </p>
+
+        <div class="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+          <a href="{% url 'users:register' %}"
+             class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
+            Criar minha conta
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14"></path>
+              <path d="M13 6l6 6-6 6"></path>
+            </svg>
+          </a>
+          <a href="#como-funciona"
+             class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900/60 px-6 py-3 text-sm font-medium text-slate-300 transition-colors hover:border-slate-600 hover:bg-slate-800 hover:text-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+            Ver como funciona
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 9l6 6 6-6"></path>
+            </svg>
+          </a>
+        </div>
+
+        <p class="mt-4 text-xs leading-relaxed text-slate-400">
+          Funciona no navegador, sem instalar nada. Cada conta acessa apenas os próprios dados.
+        </p>
       </div>
 
-      <p class="mt-4 text-xs text-slate-500">Cadastro por e-mail. Seus dados financeiros ficam isolados na sua conta.</p>
+      {% comment %} Prévia do painel (mockup) {% endcomment %}
+      <figure class="relative w-full lg:w-[48%]">
+        <figcaption class="sr-only">
+          Prévia ilustrativa do painel do Tallyora: saldo livre de R$ 1.330,00, gráfico de
+          rosca com receita dividida entre despesas, investimentos, caixinhas, eventos e saldo
+          livre, além das últimas transações. Valores fictícios.
+        </figcaption>
+
+        <div class="mx-auto w-full max-w-md lg:max-w-none" aria-hidden="true">
+          <div class="relative rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-2xl shadow-slate-950/60 backdrop-blur-md sm:p-5">
+
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex items-center gap-2">
+                <span class="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                <span class="text-xs font-medium text-slate-400">Painel · Outubro</span>
+              </div>
+              <span class="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-0.5 text-[11px] font-medium text-cyan-300">
+                Mês atual
+              </span>
+            </div>
+
+            <div class="mt-4 flex flex-col gap-1">
+              <span class="text-[11px] font-medium uppercase tracking-wider text-slate-500">Saldo livre</span>
+              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span class="whitespace-nowrap text-3xl font-bold tracking-tight text-emerald-400 tabular-nums sm:text-4xl">R$ 1.330,00</span>
+                <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-300 tabular-nums">
+                  21% da receita
+                </span>
+              </div>
+              <span class="text-xs text-slate-400 tabular-nums">de R$ 6.200,00 de receita líquida</span>
+            </div>
+
+            <div class="mt-5 flex items-center gap-4 sm:gap-5">
+              <svg class="h-24 w-24 shrink-0 sm:h-28 sm:w-28" viewBox="0 0 120 120" fill="none" role="presentation">
+                <circle cx="60" cy="60" r="44" stroke="#1e293b" stroke-width="13"></circle>
+                <g transform="rotate(-90 60 60)" stroke-width="13">
+                  <circle cx="60" cy="60" r="44" stroke="#fb7185" stroke-dasharray="160.97 276.46" stroke-dashoffset="0"></circle>
+                  <circle cx="60" cy="60" r="44" stroke="#22d3ee" stroke-dasharray="27.65 276.46" stroke-dashoffset="-160.97"></circle>
+                  <circle cx="60" cy="60" r="44" stroke="#818cf8" stroke-dasharray="15.16 276.46" stroke-dashoffset="-188.62"></circle>
+                  <circle cx="60" cy="60" r="44" stroke="#fbbf24" stroke-dasharray="13.38 276.46" stroke-dashoffset="-203.78"></circle>
+                  <circle cx="60" cy="60" r="44" stroke="#34d399" stroke-dasharray="59.31 276.46" stroke-dashoffset="-217.15"></circle>
+                </g>
+                <text x="60" y="58" text-anchor="middle" fill="#e2e8f0" font-size="16" font-weight="700" font-family="inherit" class="tabular-nums">21%</text>
+                <text x="60" y="73" text-anchor="middle" fill="#64748b" font-size="8.5" font-family="inherit">saldo livre</text>
+              </svg>
+
+              <ul class="flex min-w-0 flex-1 flex-col gap-1.5 text-xs">
+                <li class="flex items-center gap-2">
+                  <span class="h-2 w-2 shrink-0 rounded-full bg-rose-400" aria-hidden="true"></span>
+                  <span class="min-w-0 flex-1 truncate text-slate-400">Despesas e fatura</span>
+                  <span class="shrink-0 font-medium text-slate-300 tabular-nums">3.610</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="h-2 w-2 shrink-0 rounded-full bg-cyan-400" aria-hidden="true"></span>
+                  <span class="min-w-0 flex-1 truncate text-slate-400">Investimentos</span>
+                  <span class="shrink-0 font-medium text-slate-300 tabular-nums">620</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="h-2 w-2 shrink-0 rounded-full bg-indigo-400" aria-hidden="true"></span>
+                  <span class="min-w-0 flex-1 truncate text-slate-400">Caixinhas</span>
+                  <span class="shrink-0 font-medium text-slate-300 tabular-nums">340</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="h-2 w-2 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>
+                  <span class="min-w-0 flex-1 truncate text-slate-400">Eventos</span>
+                  <span class="shrink-0 font-medium text-slate-300 tabular-nums">300</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <span class="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true"></span>
+                  <span class="min-w-0 flex-1 truncate text-slate-400">Saldo livre</span>
+                  <span class="shrink-0 font-medium text-emerald-400 tabular-nums">1.330</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-4 border-t border-slate-800 pt-2">
+              <ul class="flex flex-col">
+                <li class="flex items-center gap-3 py-2">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 6h18l-7 8v6l-4-2v-4z"></path>
+                    </svg>
+                  </span>
+                  <div class="flex min-w-0 flex-1 flex-col">
+                    <span class="truncate text-xs font-medium text-slate-200">Mercado Bom Preço</span>
+                    <span class="truncate text-[11px] text-slate-500">Alimentação · conta</span>
+                  </div>
+                  <span class="shrink-0 text-xs font-medium text-slate-300 tabular-nums">− R$ 184,20</span>
+                </li>
+                <li class="flex items-center gap-3 py-2">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 19V5"></path>
+                      <path d="M6 11l6-6 6 6"></path>
+                    </svg>
+                  </span>
+                  <div class="flex min-w-0 flex-1 flex-col">
+                    <span class="truncate text-xs font-medium text-slate-200">Salário — outubro</span>
+                    <span class="truncate text-[11px] text-slate-500">Receita · CLT</span>
+                  </div>
+                  <span class="shrink-0 text-xs font-medium text-emerald-400 tabular-nums">+ R$ 4.100,00</span>
+                </li>
+                <li class="flex items-center gap-3 py-2">
+                  <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-400">
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="2.5" y="5" width="19" height="14" rx="2.5"></rect>
+                      <path d="M2.5 10h19"></path>
+                    </svg>
+                  </span>
+                  <div class="flex min-w-0 flex-1 flex-col">
+                    <span class="truncate text-xs font-medium text-slate-200">Fatura do cartão</span>
+                    <span class="truncate text-[11px] text-slate-500">Vence em 10/11</span>
+                  </div>
+                  <span class="shrink-0 text-xs font-medium text-amber-300 tabular-nums">− R$ 1.180,00</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="absolute -bottom-9 left-6 hidden items-center gap-2.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 shadow-xl shadow-slate-950/60 lg:flex">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10 text-amber-400">
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 9v4"></path>
+                <path d="M12 17h.01"></path>
+                <path d="M10.3 3.9L2.4 18a2 2 0 001.7 3h15.8a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"></path>
+              </svg>
+            </span>
+            <div class="flex flex-col">
+              <span class="text-[10px] font-medium uppercase tracking-wider text-slate-500">Fatura consolidada</span>
+              <span class="text-sm font-semibold text-amber-300 tabular-nums">R$ 1.180,00</span>
+            </div>
+          </div>
+        </div>
+      </figure>
     </div>
   </section>
 
-  {# ---------- Os quatro pilares ---------- #}
-  <section class="mt-16" aria-labelledby="pilares-titulo">
-    <div class="max-w-2xl">
-      <h2 id="pilares-titulo" class="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">Quatro pilares em uma única interface</h2>
-      <p class="mt-3 text-sm leading-relaxed text-slate-400">
-        O Tallyora nasceu de uma metodologia validada em planilha real de planejamento financeiro, unindo o
-        fluxo de caixa do dia a dia aos seus grandes objetivos.
-      </p>
-    </div>
-
-    <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-
-      <article class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
-        <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 17l5-5 3 3 7-7"></path>
-            <path d="M14 8h5v5"></path>
+  {% comment %}
+     Faixa de destaques
+  {% endcomment %}
+  <section class="border-b border-slate-800/60 bg-slate-900/30" aria-label="Destaques do Tallyora">
+    <ul class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 sm:flex-row sm:flex-wrap sm:items-center sm:gap-y-4 sm:px-6 lg:justify-between lg:px-8">
+      <li class="flex items-center gap-2.5">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-emerald-400" aria-hidden="true">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M3 12h18"></path>
+            <path d="M12 3a15 15 0 010 18a15 15 0 010-18z"></path>
           </svg>
         </span>
-        <h3 class="mt-4 text-base font-semibold text-slate-100">Fluxo de caixa realista (CLT e PJ)</h3>
-        <p class="mt-2 text-sm leading-relaxed text-slate-400">
-          Cálculo exato de entradas brutas, descontos retidos na fonte, despesas fixas, gastos variáveis e
-          faturas de cartão — sem contar a mesma despesa duas vezes.
-        </p>
-        <ul class="mt-4 space-y-2 text-sm text-slate-400">
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" aria-hidden="true"></span>Salário mensal ou quinzenal (adiantamento + fechamento)</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" aria-hidden="true"></span>Descontos de folha: INSS, IRRF, consignado, saúde</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-emerald-400" aria-hidden="true"></span>Receita variável para PJ e autônomos</li>
-        </ul>
-      </article>
-
-      <article class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
-        <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M21 8l-9-5-9 5 9 5 9-5z"></path>
-            <path d="M3 8v8l9 5 9-5V8"></path>
-            <path d="M12 13v8"></path>
+        <span class="text-sm text-slate-300">100% web, nada para instalar</span>
+      </li>
+      <li class="flex items-center gap-2.5">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-emerald-400" aria-hidden="true">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 21s7-3.5 7-9V6l-7-3-7 3v6c0 5.5 7 9 7 9z"></path>
+            <path d="M9.5 12l1.8 1.8L15 10"></path>
           </svg>
         </span>
-        <h3 class="mt-4 text-base font-semibold text-slate-100">Caixinhas e cofres</h3>
-        <p class="mt-2 text-sm leading-relaxed text-slate-400">
-          Divisão do saldo disponível por porcentagem ou valor fixo em reais, revelando exatamente o que
-          sobra livre na conta corrente.
-        </p>
-        <ul class="mt-4 space-y-2 text-sm text-slate-400">
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-cyan-400" aria-hidden="true"></span>Aporte por % do saldo ou R$ fixo</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-cyan-400" aria-hidden="true"></span>Saldo acumulado e onde o dinheiro está guardado</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-cyan-400" aria-hidden="true"></span>Saldo Livre calculado após as separações</li>
-        </ul>
-      </article>
-
-      <article class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
-        <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M3 17l5-6 4 3 5-7 4 4"></path>
-            <path d="M3 21h18"></path>
+        <span class="text-sm text-slate-300">Dados isolados por usuário</span>
+      </li>
+      <li class="flex items-center gap-2.5">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-emerald-400" aria-hidden="true">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 11-3.2-6.9"></path>
+            <path d="M21 3v5h-5"></path>
           </svg>
         </span>
-        <h3 class="mt-4 text-base font-semibold text-slate-100">Carteira de investimentos</h3>
-        <p class="mt-2 text-sm leading-relaxed text-slate-400">
-          FIIs, ações e renda fixa com metas percentuais por classe de ativo e indicação de qual ativo
-          precisa de aporte.
-        </p>
-        <ul class="mt-4 space-y-2 text-sm text-slate-400">
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-indigo-400" aria-hidden="true"></span>Estratégia macro por classe de ativo</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-indigo-400" aria-hidden="true"></span>% atual versus % ideal da carteira</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-indigo-400" aria-hidden="true"></span>Indicativo de aporte por ativo</li>
-        </ul>
-      </article>
-
-      <article class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
-        <span class="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
-          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="5" width="18" height="16" rx="2"></rect>
-            <path d="M8 3v4M16 3v4M3 11h18"></path>
+        <span class="text-sm text-slate-300">Cotações automáticas de B3 e cripto</span>
+      </li>
+      <li class="flex items-center gap-2.5">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-emerald-400" aria-hidden="true">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <path d="M3 9h18M9 9v12"></path>
           </svg>
         </span>
-        <h3 class="mt-4 text-base font-semibold text-slate-100">Eventos e lembretes do dia</h3>
-        <p class="mt-2 text-sm leading-relaxed text-slate-400">
-          Fornecedores e pagamentos de casamentos, viagens e reformas conectados às caixinhas do orçamento
-          mensal, com um painel diário de lembretes.
+        <span class="text-sm text-slate-300">Sem planilha para manter</span>
+      </li>
+    </ul>
+  </section>
+
+  {% comment %} O problema × Com o Tallyora {% endcomment %}
+  <section id="comparacao" class="scroll-mt-24" aria-labelledby="comparacao-titulo">
+    <div class="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div class="max-w-2xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Antes e depois</p>
+        <h2 id="comparacao-titulo" class="mt-3 text-balance text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+          O problema quase nunca é ganhar pouco. É não enxergar o mês inteiro.
+        </h2>
+        <p class="mt-3 text-base leading-relaxed text-slate-400">
+          Quando cada informação mora em um lugar diferente, o número final vira estimativa.
+          O Tallyora junta as peças e mostra a conta fechada.
         </p>
-        <ul class="mt-4 space-y-2 text-sm text-slate-400">
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>Orçamento, valor guardado e aporte mensal</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>Itens com status pendente, em andamento e quitado</li>
-          <li class="flex gap-2"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400" aria-hidden="true"></span>Lembretes do dia como avisos visuais</li>
-        </ul>
-      </article>
+      </div>
+
+      <div class="mt-10 flex flex-col gap-5 lg:flex-row lg:items-stretch">
+
+        <article class="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:p-7">
+          <h3 class="flex items-center gap-2.5 text-base font-semibold text-slate-300">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800/60 text-slate-400" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M15 9l-6 6M9 9l6 6"></path>
+              </svg>
+            </span>
+            Sem o Tallyora
+          </h3>
+          <ul class="mt-5 flex flex-col gap-3.5">
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-400/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-400">A planilha que só você entende — e que quebra quando o mês vira.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-400/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-400">A fatura do cartão somada às compras que já estão dentro dela.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-400/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-400">Dinheiro guardado em quatro bancos diferentes, sem visão do todo.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-rose-400/70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-400">No dia 30, a impressão de que sobrou menos do que deveria.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="flex flex-1 flex-col rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-6 sm:p-7">
+          <h3 class="flex items-center gap-2.5 text-base font-semibold text-slate-100">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-500/25 bg-emerald-500/10 text-emerald-400" aria-hidden="true">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+            </span>
+            Com o Tallyora
+          </h3>
+          <ul class="mt-5 flex flex-col gap-3.5">
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-300">Um painel único, atualizado a cada lançamento.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-300">Cada compra no cartão entra pela fatura, uma única vez.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-300">Caixinhas, eventos e investimentos com saldo e meta no mesmo lugar.</span>
+            </li>
+            <li class="flex gap-3">
+              <svg class="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5"></path>
+              </svg>
+              <span class="text-sm leading-relaxed text-slate-300">Um número explícito para decidir: quanto sobra livre no mês.</span>
+            </li>
+          </ul>
+        </article>
+      </div>
     </div>
   </section>
 
-  {# ---------- Três perguntas ---------- #}
-  <section class="mt-16 rounded-3xl border border-slate-800 bg-slate-900/60 px-6 py-10 backdrop-blur-md sm:px-10" aria-labelledby="perguntas-titulo">
-    <h2 id="perguntas-titulo" class="text-xl font-bold tracking-tight text-slate-100 sm:text-2xl">Tallyora responde, em tempo real:</h2>
-    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-        <p class="text-sm font-medium text-slate-200">Quanto dinheiro realmente sobra na minha conta neste período?</p>
-        <p class="mt-2 text-sm text-slate-500">Depois de pagar contas, fatura do cartão e separar meus objetivos.</p>
+  {% comment %} Funcionalidades {% endcomment %}
+  <section id="recursos" class="scroll-mt-24 border-t border-slate-800/60" aria-labelledby="recursos-titulo">
+    <div class="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="max-w-2xl">
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Funcionalidades</p>
+          <h2 id="recursos-titulo" class="mt-3 text-balance text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+            O que você resolve com o Tallyora
+          </h2>
+          <p class="mt-3 text-base leading-relaxed text-slate-400">
+            Seis frentes que normalmente vivem em seis abas de planilha — agora conectadas
+            ao mesmo cálculo.
+          </p>
+        </div>
       </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-        <p class="text-sm font-medium text-slate-200">Como está a evolução do meu patrimônio investido?</p>
-        <p class="mt-2 text-sm text-slate-500">E onde devo aportar este mês segundo as minhas metas.</p>
-      </div>
-      <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5">
-        <p class="text-sm font-medium text-slate-200">Quanto já paguei e quanto falta para os meus eventos?</p>
-        <p class="mt-2 text-sm text-slate-500">E quanto preciso guardar por mês para realizar cada um deles.</p>
+
+      <div class="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8h14l-3-3"></path>
+              <path d="M21 16H7l3 3"></path>
+              <path d="M3 8v3"></path>
+              <path d="M21 16v-3"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Transações e despesas fixas</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            O que se repete todo mês já vem lançado. Você gasta tempo decidindo, não digitando
+            a mesma conta de novo.
+          </p>
+        </article>
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2.5" y="5" width="19" height="14" rx="2.5"></rect>
+              <path d="M2.5 10h19"></path>
+              <path d="M6 15h4"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Contas e cartões com fatura</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            A fatura consolidada de cada cartão no lugar certo do cálculo. Sem contar a mesma
+            compra duas vezes e sem susto no vencimento.
+          </p>
+        </article>
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 8l9-5 9 5-9 5-9-5z"></path>
+              <path d="M3 8v8l9 5 9-5V8"></path>
+              <path d="M12 13v8"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Caixinhas e metas</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            Separe por porcentagem ou valor fixo e acompanhe a barra de cada objetivo. Você vê
+            exatamente quanto ainda está disponível na conta.
+          </p>
+        </article>
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10 text-indigo-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+              <path d="M8 3v4M16 3v4M3 11h18"></path>
+              <path d="M9 16l2 2 4-4"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Eventos e fornecedores</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            Casamento, viagem ou reforma com custo total, o que já foi pago e quanto falta
+            guardar por mês, fornecedor por fornecedor.
+          </p>
+        </article>
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 text-emerald-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 17l5-5 3 3 7-7"></path>
+              <path d="M14 8h5v5"></path>
+              <path d="M3 21h18"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Carteira de investimentos</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            Ações, FIIs, renda fixa e cripto com cotação automática e meta por classe. Na hora
+            do aporte, você sabe qual classe está para trás.
+          </p>
+        </article>
+
+        <article class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-colors hover:border-slate-700">
+          <span class="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400" aria-hidden="true">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.7 21a2 2 0 01-3.4 0"></path>
+            </svg>
+          </span>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Lembretes do dia</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            O que vence hoje em um painel curto, sem virar mais uma lista esquecida. A agenda
+            do Google é opcional.
+          </p>
+        </article>
       </div>
     </div>
   </section>
 
-  {# ---------- CTA final ---------- #}
-  <section class="mt-16 rounded-3xl border border-slate-800 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 px-6 py-12 text-center sm:px-10">
-    <h2 class="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">Comece com o seu salário real</h2>
-    <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-400">
-      Crie sua conta, configure o regime de trabalho e veja o seu mês fechar sem planilha.
-    </p>
-    <div class="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-      <a href="{% url 'users:register' %}"
-         class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300">
-        Cadastre-se
-      </a>
-      <a href="{% url 'users:login' %}"
-         class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700">
-        Entrar
-      </a>
+  {% comment %} Como funciona — três passos {% endcomment %}
+  <section id="como-funciona" class="scroll-mt-24 border-t border-slate-800/60 bg-slate-900/20" aria-labelledby="como-funciona-titulo">
+    <div class="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+      <div class="max-w-2xl">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">Como funciona</p>
+        <h2 id="como-funciona-titulo" class="mt-3 text-balance text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+          Três passos entre a conta bagunçada e o mês fechado
+        </h2>
+        <p class="mt-3 text-base leading-relaxed text-slate-400">
+          Sem importar planilha, sem configurar fórmula. O cálculo já está pronto — você só
+          alimenta os dados.
+        </p>
+      </div>
+
+      <ol class="mt-10 flex flex-col gap-5 md:flex-row md:items-stretch">
+        <li class="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+          <div class="flex items-center gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-sm font-bold text-emerald-400 tabular-nums">1</span>
+            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Passo um</span>
+          </div>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Crie sua conta</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            Cadastro por e-mail, em menos de dois minutos. Nada para instalar e nenhum dado
+            compartilhado com outra conta.
+          </p>
+        </li>
+
+        <li class="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+          <div class="flex items-center gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-sm font-bold text-emerald-400 tabular-nums">2</span>
+            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Passo dois</span>
+          </div>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Cadastre receitas e despesas</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            Informe o salário (CLT ou PJ), os descontos de folha, as despesas fixas, as contas,
+            os cartões e o que você separa para objetivos.
+          </p>
+        </li>
+
+        <li class="flex flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-6">
+          <div class="flex items-center gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-sm font-bold text-emerald-400 tabular-nums">3</span>
+            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Passo três</span>
+          </div>
+          <h3 class="mt-4 text-base font-semibold text-slate-100">Veja o saldo livre</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            O dashboard mostra o que sobra depois de tudo o que já tem destino — e você decide
+            com o número na mão, não com estimativa.
+          </p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  {% comment %} Saldo livre — a conta que fecha o mês {% endcomment %}
+  <section id="saldo-livre" class="scroll-mt-24 border-t border-slate-800/60" aria-labelledby="saldo-livre-titulo">
+    <div class="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:flex-row lg:items-center lg:gap-14 lg:px-8">
+
+      <div class="flex w-full flex-col lg:w-[52%]">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-400">O número que importa</p>
+        <h2 id="saldo-livre-titulo" class="mt-3 text-balance text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+          Saldo livre: a conta que fecha o mês
+        </h2>
+        <p class="mt-4 text-base leading-relaxed text-slate-400">
+          A maioria dos aplicativos mostra quanto entrou e quanto saiu. O Tallyora vai além:
+          desconta o que já tem destino — fatura, investimentos, caixinhas e eventos — e
+          entrega o valor que realmente está livre na conta.
+        </p>
+
+        <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+          <p class="text-xs font-medium uppercase tracking-wider text-slate-500">A conta, na ordem</p>
+          <div class="mt-3 flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+            <span class="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-medium text-emerald-300">Receita líquida</span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">−</span>
+              <span class="rounded-lg border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-slate-300">Despesas</span>
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">−</span>
+              <span class="rounded-lg border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-amber-300">Fatura</span>
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">−</span>
+              <span class="rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 text-cyan-300">Investimentos</span>
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">−</span>
+              <span class="rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 text-indigo-300">Caixinhas</span>
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">−</span>
+              <span class="rounded-lg border border-slate-700 bg-slate-800/60 px-2.5 py-1 text-slate-300">Eventos</span>
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <span class="text-slate-500" aria-hidden="true">=</span>
+              <span class="rounded-lg border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-1 font-semibold text-emerald-300">Saldo livre</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="mt-4 flex gap-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+          <svg class="mt-0.5 h-4 w-4 shrink-0 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 8h.01M11 12h1v4h1"></path>
+          </svg>
+          <p class="text-sm leading-relaxed text-slate-400">
+            Nenhum valor é descontado duas vezes: a compra no cartão entra pela fatura, não pela
+            despesa. Se um mês vier negativo, o Tallyora mostra o estouro — não esconde.
+          </p>
+        </div>
+      </div>
+
+      <div class="w-full lg:w-[48%]">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl shadow-slate-950/40 backdrop-blur-md sm:p-7">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex flex-col">
+              <span class="text-sm font-semibold text-slate-100">Fechamento de outubro</span>
+              <span class="mt-0.5 text-xs text-slate-400">Exemplo com valores fictícios</span>
+            </div>
+            <span class="rounded-full border border-slate-800 px-2.5 py-0.5 text-[11px] font-medium text-slate-400">
+              Extrato
+            </span>
+          </div>
+
+          <div class="mt-5 flex flex-col">
+            <div class="flex items-baseline justify-between gap-4 border-b border-slate-800/70 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Receita líquida</span>
+              <span class="text-sm font-medium text-slate-200 whitespace-nowrap tabular-nums">R$ 6.200,00</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4 border-b border-slate-800/70 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Despesas do mês</span>
+              <span class="text-sm font-medium text-slate-300 whitespace-nowrap tabular-nums">− R$ 2.430,00</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4 border-b border-slate-800/70 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Fatura do cartão</span>
+              <span class="text-sm font-medium text-amber-300 whitespace-nowrap tabular-nums">− R$ 1.180,00</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4 border-b border-slate-800/70 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Investimentos</span>
+              <span class="text-sm font-medium text-cyan-300 whitespace-nowrap tabular-nums">− R$ 620,00</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4 border-b border-slate-800/70 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Caixinhas</span>
+              <span class="text-sm font-medium text-indigo-300 whitespace-nowrap tabular-nums">− R$ 340,00</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-4 py-2.5">
+              <span class="min-w-0 text-sm text-slate-400">Eventos</span>
+              <span class="text-sm font-medium text-slate-300 whitespace-nowrap tabular-nums">− R$ 300,00</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-col items-start gap-1.5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div class="flex flex-col">
+              <span class="text-xs font-medium uppercase tracking-wider text-emerald-300/80">Saldo livre</span>
+              <span class="text-[11px] text-slate-400">21% da receita líquida</span>
+            </div>
+            <span class="whitespace-nowrap text-xl font-bold tracking-tight text-emerald-400 tabular-nums sm:text-2xl">R$ 1.330,00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {% comment %} CTA final {% endcomment %}
+  <section aria-labelledby="cta-titulo">
+    <div class="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8">
+      <div class="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-slate-900 px-6 py-12 text-center sm:px-10 sm:py-14">
+        <div class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-500/15 blur-3xl" aria-hidden="true"></div>
+        <div class="relative flex flex-col items-center">
+          <h2 id="cta-titulo" class="max-w-2xl text-balance text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
+            Comece pelo saldo que realmente sobra
+          </h2>
+          <p class="mt-3 max-w-xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            Crie sua conta, lance o mês atual e veja o número que fecha a conta. Leva menos
+            tempo do que montar a primeira aba da planilha.
+          </p>
+          <div class="mt-7 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+            <a href="{% url 'users:register' %}"
+               class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 sm:w-auto">
+              Criar minha conta
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14"></path>
+                <path d="M13 6l6 6-6 6"></path>
+              </svg>
+            </a>
+            <a href="{% url 'users:login' %}"
+               class="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-900/60 px-6 py-3 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 sm:w-auto">
+              Já tenho conta
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

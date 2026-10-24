@@ -236,7 +236,7 @@
                 <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Valor atual</th>
                 <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Lucro / Prejuízo</th>
                 <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Peso ideal</th>
-                <th scope="col" class="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-400">Indicador</th>
+                <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Peso na classe</th>
                 <th scope="col" class="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-400">Ações</th>
               </tr>
             </thead>
@@ -281,14 +281,17 @@
                     <td class="whitespace-nowrap px-5 py-4 text-right tabular-nums text-slate-300">{{ asset.target_percentage_in_class|floatformat:"2g" }}%</td>
 
                     <td class="whitespace-nowrap px-5 py-4">
-                      {% if row.current_value > 0 %}
-                        {% widthratio asset.current_total_value row.current_value 100 as peso_atual %}
-                      {% endif %}
-                      {% if peso_atual|add:"0" < asset.target_percentage_in_class %}
-                        <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400">Aportar</span>
-                      {% else %}
-                        <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-medium text-slate-400">Aguardar</span>
-                      {% endif %}
+                      <div class="flex items-center justify-end gap-2"
+                          title="Meta igualitária da classe: {{ asset.class_weight_target|floatformat:'1g' }}%">
+                        <span class="text-xs font-semibold tabular-nums text-slate-200">{{ asset.class_weight|floatformat:'1g' }}%</span>
+                        {% if asset.class_weight_action == 'APORTAR' %}
+                          <span class="inline-flex items-center rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">Aportar</span>
+                        {% elif asset.class_weight_action == 'AGUARDAR' %}
+                          <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-[11px] font-semibold text-slate-400">Aguardar</span>
+                        {% else %}
+                          <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">Manter</span>
+                        {% endif %}
+                      </div>
                     </td>
 
                     <td class="whitespace-nowrap px-5 py-4">

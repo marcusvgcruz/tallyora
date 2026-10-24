@@ -10,6 +10,8 @@ from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
+from django.utils import timezone
 
 from goals_events.models import EventPlan, GoalBox
 from profiles.models import UserProfile
@@ -601,3 +603,176 @@ class UserIsolationTests(EngineTestCase):
         self.assertEqual(summary['cash_expenses'], ZERO)
         self.assertEqual(summary['credit_card_bill'], Decimal('500.00'))
         self.assertEqual(summary['free_balance'], Decimal('1500.00'))
+
+
+class TransactionListPaginationTests(TestCase):
+    """Pagination and title search of the transaction list."""
+
+    def setUp(self):
+        """Create twelve expenses inside the current month."""
+        self.user = get_user_model().objects.create_user(
+            email='lista@example.com',
+            password='secret',
+        )
+        self.client.force_login(self.user)
+        self.url = reverse('transactions:list')
+        self.today = timezone.localdate()
+        for index in range(1, 13):
+            self.add_transaction(index)
+
+    def add_transaction(self, index, user=None, title=None):
+        """Create one expense of the current month."""
+        return Transaction.objects.create(
+            user=user or self.user,
+            title=title or f'Compra {index:02d}',
+            amount=Decimal('10.00'),
+            transaction_type=Transaction.TransactionType.EXPENSE,
+            reference_date=self.today,
+        )
+
+    def add_other_user(self, email='outro@example.com'):
+        """Create a second user to check the isolation of the list."""
+        return get_user_model().objects.create_user(
+            email=email,
+            password='secret',
+        )
+
+    def test_first_page_holds_ten_of_two_pages(self):
+        """Ten rows on page 1 and two pages in total."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['transactions']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertContains(response, 'Página 1 de 2')
+
+    def test_second_page_holds_the_remaining_two(self):
+        """Page 2 brings the two rows left by page 1."""
+        response = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['transactions']), 2)
+        self.assertContains(response, 'Página 2 de 2')
+
+    def test_edges_of_the_list_disable_the_idle_button(self):
+        """Page 1 disables 'Anterior'; the last page disables 'Próxima'."""
+        first = self.client.get(self.url)
+        last = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(first.content.count(b'aria-disabled="true"'), 1)
+        self.assertEqual(last.content.count(b'aria-disabled="true"'), 1)
+
+    def test_search_is_case_insensitive(self):
+        """The term finds the title whatever the case typed."""
+        response = self.client.get(self.url, {'q': 'cOmPrA 03'})
+
+        self.assertEqual(len(response.context['transactions']), 1)
+        self.assertContains(response, 'Compra 03')
+        self.assertContains(response, 'value="cOmPrA 03"')
+
+    def test_search_without_match_uses_the_search_empty_state(self):
+        """A term without results shows its own empty message."""
+        response = self.client.get(self.url, {'q': 'notebook'})
+
+        self.assertEqual(len(response.context['transactions']), 0)
+        self.assertContains(
+            response,
+            'Nenhuma transação encontrada para “notebook”',
+        )
+        self.assertNotContains(
+            response,
+            'Nenhuma transação neste período',
+        )
+
+    def test_pagination_link_keeps_the_search_query(self):
+        """The next page link carries the term typed in the search."""
+        response = self.client.get(self.url, {'q': 'Compra'})
+
+        self.assertContains(response, '?q=Compra')
+        self.assertContains(response, 'page=2')
+
+    def test_pagination_never_shows_another_user_item(self):
+        """The pages only bring rows of the logged user."""
+        other = self.add_other_user()
+        for index in range(1, 13):
+            self.add_transaction(
+                index,
+                user=other,
+                title=f'Alheia {index:02d}',
+            )
+
+        response = self.client.get(self.url)
+        page_two = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['transactions']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertEqual(len(page_two.context['transactions']), 2)
+        self.assertContains(response, 'Compra')
+        self.assertNotContains(response, 'Alheia')
+        self.assertNotContains(page_two, 'Alheia')
+
+
+class RecurringExpenseListPaginationTests(TestCase):
+    """Pagination of the fixed expenses list."""
+
+    def setUp(self):
+        """Create twelve fixed expenses for one user."""
+        self.user = get_user_model().objects.create_user(
+            email='fixas@example.com',
+            password='secret',
+        )
+        self.client.force_login(self.user)
+        self.url = reverse('transactions:recurring_list')
+        for index in range(1, 13):
+            self.add_recurring(index)
+
+    def add_recurring(self, index, user=None, title=None):
+        """Create one fixed expense due on ``index``."""
+        return RecurringExpense.objects.create(
+            user=user or self.user,
+            title=title or f'Fixa {index:02d}',
+            amount=Decimal('100.00'),
+            due_day=index,
+        )
+
+    def test_first_page_holds_ten_of_two_pages(self):
+        """Ten rows on page 1 and two pages in total."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['recurring_expenses']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertContains(response, 'Página 1 de 2')
+
+    def test_second_page_holds_the_remaining_two(self):
+        """Page 2 brings the two rows left by page 1."""
+        response = self.client.get(self.url, {'page': 2})
+
+        self.assertEqual(len(response.context['recurring_expenses']), 2)
+
+    def test_total_counts_every_page(self):
+        """The monthly total is not limited to the visible page."""
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context['total'], Decimal('1200.00'))
+
+    def test_pagination_never_shows_another_user_item(self):
+        """The pages only bring rows of the logged user."""
+        other = get_user_model().objects.create_user(
+            email='fixas2@example.com',
+            password='secret',
+        )
+        for index in range(1, 13):
+            self.add_recurring(
+                index,
+                user=other,
+                title=f'Alheia {index:02d}',
+            )
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(len(response.context['recurring_expenses']), 10)
+        self.assertEqual(response.context['paginator'].num_pages, 2)
+        self.assertEqual(
+            response.context['total'],
+            Decimal('1200.00'),
+        )
+        self.assertContains(response, 'Fixa')
+        self.assertNotContains(response, 'Alheia')

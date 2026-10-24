@@ -104,9 +104,36 @@
     </p>
   </div>
 
-  {# ---------- Tabela ---------- #}
-  {% if transactions %}
-    <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+  {# ---------- Card da tabela ---------- #}
+  <div class="mt-6 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+    {# ---------- Busca por título ---------- #}
+    <form method="get"
+          class="flex flex-col gap-2 border-b border-slate-800 p-4 sm:flex-row sm:items-center sm:gap-3 sm:p-5"
+          role="search">
+      <input type="hidden" name="mes" value="{{ filters.mes }}">
+      <input type="hidden" name="ano" value="{{ filters.ano }}">
+      <input type="hidden" name="periodo" value="{{ filters.periodo }}">
+      <div class="flex-1">
+        <label for="busca-transacoes" class="sr-only">Buscar transação por título</label>
+        <input id="busca-transacoes" type="search" name="q" value="{{ search_query }}"
+               placeholder="Buscar por título"
+               class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="submit"
+                class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 sm:w-auto">
+          Buscar
+        </button>
+        {% if search_query %}
+          <a href="{% querystring q=None page=None %}"
+             class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+            Limpar
+          </a>
+        {% endif %}
+      </div>
+    </form>
+
+    {% if transactions %}
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-800 text-left text-sm">
           <caption class="sr-only">Transações do período {{ period.label }}</caption>
@@ -196,9 +223,24 @@
           </tbody>
         </table>
       </div>
-    </div>
-  {% else %}
-    {% url 'transactions:create' as criar_transacao_url %}
-    {% include 'partials/_empty_state.html' with title='Nenhuma transação neste período' description='Ajuste o filtro de mês, ano ou período — ou registre sua primeira receita ou despesa para acompanhar a fatura.' action_url=criar_transacao_url action_label='Nova transação' %}
+
+      {% if page_obj.paginator.num_pages > 1 %}
+        <div class="border-t border-slate-800 px-5 py-4">
+          {% include 'partials/pagination.html' %}
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  {% if not transactions %}
+    {% if search_query %}
+      {% with titulo_busca='Nenhuma transação encontrada para “'|add:search_query|add:'”' %}
+        {% querystring q=None page=None as limpar_busca_url %}
+        {% include 'partials/_empty_state.html' with title=titulo_busca description='Confira o termo digitado ou limpe a busca para ver todas as transações do período.' action_url=limpar_busca_url action_label='Limpar busca' %}
+      {% endwith %}
+    {% else %}
+      {% url 'transactions:create' as criar_transacao_url %}
+      {% include 'partials/_empty_state.html' with title='Nenhuma transação neste período' description='Ajuste o filtro de mês, ano ou período — ou registre sua primeira receita ou despesa para acompanhar a fatura.' action_url=criar_transacao_url action_label='Nova transação' %}
+    {% endif %}
   {% endif %}
 {% endblock %}

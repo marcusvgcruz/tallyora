@@ -27,8 +27,34 @@
     {% endwith %}
     <div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
       <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Eventos planejados</span>
-      <span class="mt-2 text-2xl font-bold tabular-nums text-slate-100">{{ event_plans|length }}</span>
+      <span class="mt-2 text-2xl font-bold tabular-nums text-slate-100">{{ paginator.count }}</span>
     </div>
+  </div>
+
+  {# ---------- Busca por nome ---------- #}
+  <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-xl backdrop-blur-md sm:p-5">
+    <form method="get"
+          class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3"
+          role="search">
+      <div class="flex-1">
+        <label for="busca-eventos" class="sr-only">Buscar evento por nome</label>
+        <input id="busca-eventos" type="search" name="q" value="{{ search_query }}"
+               placeholder="Buscar por nome do evento"
+               class="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="submit"
+                class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 sm:w-auto">
+          Buscar
+        </button>
+        {% if search_query %}
+          <a href="{% querystring q=None page=None %}"
+             class="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800 px-3.5 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+            Limpar
+          </a>
+        {% endif %}
+      </div>
+    </form>
   </div>
 
   {# ---------- Cards de eventos ---------- #}
@@ -131,8 +157,21 @@
         </article>
       {% endfor %}
     </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-4 shadow-xl backdrop-blur-md">
+        {% include 'partials/pagination.html' %}
+      </div>
+    {% endif %}
   {% else %}
-    {% url 'goals:event_create' as criar_evento_url %}
-    {% include 'partials/_empty_state.html' with title='Nenhum evento planejado' description='Cadastre o primeiro evento para somar os custos dos fornecedores e descobrir quanto precisa guardar por mês.' action_url=criar_evento_url action_label='Novo evento' %}
+    {% if search_query %}
+      {% with titulo_busca='Nenhum evento encontrado para “'|add:search_query|add:'”' %}
+        {% querystring q=None page=None as limpar_busca_url %}
+        {% include 'partials/_empty_state.html' with title=titulo_busca description='Confira o nome digitado ou limpe a busca para ver todos os eventos planejados.' action_url=limpar_busca_url action_label='Limpar busca' %}
+      {% endwith %}
+    {% else %}
+      {% url 'goals:event_create' as criar_evento_url %}
+      {% include 'partials/_empty_state.html' with title='Nenhum evento planejado' description='Cadastre o primeiro evento para somar os custos dos fornecedores e descobrir quanto precisa guardar por mês.' action_url=criar_evento_url action_label='Novo evento' %}
+    {% endif %}
   {% endif %}
 {% endblock %}

@@ -3,16 +3,37 @@
 import json
 import urllib.error
 from decimal import Decimal
+from email.message import Message
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from users.models import CustomUser
 
 from .models import AssetClass, InvestmentAsset
-from .services import QuoteUpdaterService
+from .services import (
+    ACTION_BUY,
+    ACTION_HOLD,
+    ACTION_WAIT,
+    CRYPTO_UNKNOWN_REASON,
+    QuoteUpdaterService,
+    asset_weights,
+    weight_action,
+)
 
 ZERO = Decimal('0.00')
+COINGECKO_PAYLOAD = {'bitcoin': {'brl': 350000.5}}
+# The manifest storage of the project needs ``collectstatic`` first, so
+# the rendering test uses the plain storage to stay self contained.
+PLAIN_STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
+    },
+}
 B3_PAYLOAD = {
     'TradgFlr': {
         'scty': {
@@ -36,6 +57,27 @@ class FakeResponse:
 
     def __exit__(self, exc_type, exc_value, traceback):
         return False
+
+
+def _opener(routes):
+    """Build a ``urlopen`` side effect that answers by URL fragment.
+
+    Each key of ``routes`` is a fragment of the request URL and each
+    value is either a JSON payload or an exception to raise. A URL that
+    matches no route raises ``AssertionError`` so an unexpected provider
+    call fails the test instead of being silently answered.
+    """
+
+    def opener(request, timeout=None):
+        url = request.full_url
+        for fragment, answer in routes.items():
+            if fragment in url:
+                if isinstance(answer, Exception):
+                    raise answer
+                return FakeResponse(answer)
+        raise AssertionError(f'url inesperada: {url}')
+
+    return opener
 
 
 class InvestmentAssetTest(TestCase):
@@ -271,3 +313,225 @@ class QuoteUpdaterServiceTest(TestCase):
             Decimal('9.0000'),
         )
         self.assertIsNone(other_asset.last_quote_update)
+
+
+class CryptoQuoteServiceTest(TestCase):
+    """Crypto quotes coming from the public CoinGecko API."""
+
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='crypto@example.com',
+            password='secret123',
+        )
+        self.asset = InvestmentAsset.objects.create(
+            user=self.user,
+            asset_class=AssetClass.CRYPTO,
+            ticker='BTC',
+            quantity=Decimal('0.5'),
+            average_price=Decimal('200000.0000'),
+            current_price=Decimal('300000.0000'),
+        )
+
+    def _update(self):
+        return QuoteUpdaterService(
+            self.user,
+            timeout=1,
+        ).update_user_assets()
+
+    def test_coingecko_price_updates_the_crypto_asset(self):
+        with patch(
+            'urllib.request.urlopen',
+            side_effect=_opener({'api.coingecko.com': COINGECKO_PAYLOAD}),
+        ) as urlopen:
+            result = self._update()
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.current_price,
+            Decimal('350000.5000'),
+        )
+        self.assertIsNotNone(self.asset.last_quote_update)
+        self.assertEqual(
+            [entry['ticker'] for entry in result['updated']],
+            ['BTC'],
+        )
+        self.assertEqual(result['failed'], [])
+        self.assertEqual(result['skipped'], [])
+        self.assertEqual(result['source'], 'coingecko')
+        url = urlopen.call_args.args[0].full_url
+        self.assertIn('ids=bitcoin', url)
+        self.assertIn('vs_currencies=brl', url)
+
+    def test_unknown_crypto_ticker_is_skipped_without_a_request(self):
+        self.asset.delete()
+        asset = InvestmentAsset.objects.create(
+            user=self.user,
+            asset_class=AssetClass.CRYPTO,
+            ticker='XYZ',
+            quantity=Decimal('10'),
+            average_price=Decimal('10.0000'),
+            current_price=Decimal('12.0000'),
+        )
+        with patch('urllib.request.urlopen') as urlopen:
+            result = self._update()
+        asset.refresh_from_db()
+        urlopen.assert_not_called()
+        self.assertEqual(asset.current_price, Decimal('12.0000'))
+        self.assertIsNone(asset.last_quote_update)
+        self.assertEqual(
+            result['skipped'],
+            [{'ticker': 'XYZ', 'reason': CRYPTO_UNKNOWN_REASON}],
+        )
+        self.assertEqual(result['failed'], [])
+        self.assertEqual(result['updated'], [])
+
+    def test_http_error_keeps_the_previous_crypto_quote(self):
+        error = urllib.error.HTTPError(
+            'https://api.coingecko.com/api/v3/simple/price',
+            500,
+            'erro do servidor',
+            Message(),
+            None,
+        )
+        with patch('urllib.request.urlopen', side_effect=error):
+            result = self._update()
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.current_price,
+            Decimal('300000.0000'),
+        )
+        self.assertIsNone(self.asset.last_quote_update)
+        self.assertEqual(result['updated'], [])
+        self.assertEqual(
+            [entry['ticker'] for entry in result['failed']],
+            ['BTC'],
+        )
+        self.assertIn('HTTP 500', result['failed'][0]['reason'])
+
+    def test_network_error_keeps_the_previous_crypto_quote(self):
+        error = urllib.error.URLError('network unreachable')
+        with patch('urllib.request.urlopen', side_effect=error):
+            result = self._update()
+        self.asset.refresh_from_db()
+        self.assertEqual(
+            self.asset.current_price,
+            Decimal('300000.0000'),
+        )
+        self.assertIsNone(self.asset.last_quote_update)
+        self.assertEqual(result['updated'], [])
+        self.assertEqual(
+            [entry['ticker'] for entry in result['failed']],
+            ['BTC'],
+        )
+        self.assertIn(
+            'falha de rede',
+            result['failed'][0]['reason'],
+        )
+
+    def test_crypto_never_asks_b3_or_yahoo(self):
+        InvestmentAsset.objects.create(
+            user=self.user,
+            asset_class=AssetClass.FII,
+            ticker='HGLG11',
+            quantity=Decimal('10'),
+            average_price=Decimal('100.0000'),
+            current_price=Decimal('110.0000'),
+        )
+        routes = {
+            'cotacao.b3.com.br': B3_PAYLOAD,
+            'api.coingecko.com': COINGECKO_PAYLOAD,
+        }
+        with patch.dict('os.environ', {'BRAPI_TOKEN': ''}):
+            with patch(
+                'urllib.request.urlopen',
+                side_effect=_opener(routes),
+            ) as urlopen:
+                result = self._update()
+        urls = [call.args[0].full_url for call in urlopen.call_args_list]
+        joined = ' '.join(urls)
+        self.assertEqual(len(urls), 2)
+        self.assertIn('cotacao.b3.com.br', joined)
+        self.assertIn('api.coingecko.com', joined)
+        self.assertNotIn('yahoo', joined)
+        self.assertNotIn('brapi', joined)
+        self.assertEqual(
+            sorted(entry['ticker'] for entry in result['updated']),
+            ['BTC', 'HGLG11'],
+        )
+        self.assertEqual(result['failed'], [])
+
+
+class AssetWeightTest(TestCase):
+    """Weight of each asset inside its own class of the portfolio."""
+
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email='weights@example.com',
+            password='secret123',
+        )
+
+    def _asset(self, ticker, price, asset_class=AssetClass.STOCK):
+        return InvestmentAsset.objects.create(
+            user=self.user,
+            asset_class=asset_class,
+            ticker=ticker,
+            quantity=Decimal('1'),
+            average_price=Decimal('100.0000'),
+            current_price=Decimal(price),
+        )
+
+    def test_three_actions_inside_the_same_class(self):
+        big = self._asset('AAAA3', '500.0000')
+        near = self._asset('BBBB3', '340.0000')
+        small = self._asset('CCCC3', '160.0000')
+        rows = asset_weights([big, near, small])
+        self.assertEqual(rows[big.pk]['weight'], Decimal('50.00'))
+        self.assertEqual(rows[near.pk]['weight'], Decimal('34.00'))
+        self.assertEqual(rows[small.pk]['weight'], Decimal('16.00'))
+        self.assertEqual(rows[big.pk]['target'], Decimal('33.33'))
+        self.assertEqual(rows[big.pk]['action'], ACTION_WAIT)
+        self.assertEqual(rows[near.pk]['action'], ACTION_HOLD)
+        self.assertEqual(rows[small.pk]['action'], ACTION_BUY)
+
+    def test_one_percentage_point_is_the_tolerance(self):
+        target = Decimal('33.33')
+        cases = (
+            (Decimal('34.33'), ACTION_HOLD),
+            (Decimal('34.34'), ACTION_WAIT),
+            (Decimal('32.33'), ACTION_HOLD),
+            (Decimal('32.32'), ACTION_BUY),
+        )
+        for weight, expected in cases:
+            with self.subTest(weight=weight):
+                self.assertEqual(
+                    weight_action(weight, target),
+                    expected,
+                )
+
+    def test_single_asset_class_stays_on_target(self):
+        asset = self._asset('HGLG11', '1000.0000', AssetClass.FII)
+        rows = asset_weights([asset])
+        self.assertEqual(rows[asset.pk]['weight'], Decimal('100.00'))
+        self.assertEqual(rows[asset.pk]['target'], Decimal('100.00'))
+        self.assertEqual(rows[asset.pk]['diff'], ZERO)
+        self.assertEqual(rows[asset.pk]['action'], ACTION_HOLD)
+
+    def test_each_class_is_compared_on_its_own(self):
+        stock = self._asset('AAAA3', '500.0000')
+        crypto = self._asset('BTC', '1500.0000', AssetClass.CRYPTO)
+        rows = asset_weights([stock, crypto])
+        self.assertEqual(rows[stock.pk]['weight'], Decimal('100.00'))
+        self.assertEqual(rows[crypto.pk]['weight'], Decimal('100.00'))
+        self.assertEqual(rows[stock.pk]['action'], ACTION_HOLD)
+        self.assertEqual(rows[crypto.pk]['action'], ACTION_HOLD)
+
+    @override_settings(STORAGES=PLAIN_STORAGES)
+    def test_portfolio_view_exposes_the_weight_of_each_asset(self):
+        asset = self._asset('HGLG11', '1000.0000', AssetClass.FII)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('investments:portfolio'))
+        self.assertEqual(response.status_code, 200)
+        rows = response.context['asset_weights']
+        self.assertEqual(rows[asset.pk]['weight'], Decimal('100.00'))
+        self.assertEqual(rows[asset.pk]['action'], ACTION_HOLD)
+        self.assertContains(response, 'Manter')
+        self.assertContains(response, 'Peso na classe')

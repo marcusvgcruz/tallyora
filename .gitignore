@@ -32,6 +32,13 @@ staticfiles/
 .env.*
 !.env.example
 
+# Arquivos de construção do projeto (não fazem parte da aplicação).
+# Continuam no disco e na máquina de quem desenvolve; só não vão para o
+# repositório. `docs/` fica versionado: documenta o produto (arquitetura,
+# regras de negócio, design system), não o processo de construção.
+PRD.md
+TASKS.md
+
 # Ferramentas / editores
 .pytest_cache/
 .coverage
