@@ -102,6 +102,11 @@ Receita Líquida (−) Gastos Conta (−) Fatura Cartão (−) Investimentos (�
 - Exibidos apenas onde `reminder_date == timezone.localdate()`.
 - **Sem checkbox de conclusão**: o usuário adiciona, edita e remove — não marca como feito.
 - `external_google_event_id` existe para o espelho opcional do Google Calendar (leitura OAuth2). Sem token configurado, o módulo funciona 100% por cadastro manual (mitigação R03).
+- **Espelho da agenda:** `GoogleCalendarSyncService.sync_today()` lê os eventos de hoje e faz `update_or_create` por `external_google_event_id`. Regras:
+  - só remove/atualiza linhas **com** id externo — lembrete manual nunca é alterado pela sincronização;
+  - se a leitura da agenda falhar, a sincronização **não apaga nada** (um erro de rede não pode zerar o mural);
+  - evento de dia inteiro entra com horário `00:00` e rótulo "Dia inteiro";
+  - falha de configuração/HTTP devolve lista vazia e explica o motivo em `last_error` — nunca derruba o dashboard.
 
 ## 9. Ordem de cálculo no fechamento do período
 

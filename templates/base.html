@@ -124,14 +124,16 @@
           {% if current_app == 'investments' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
         </a>
 
-        <div class="flex cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500" aria-disabled="true">
-          <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <a href="{% url 'reminders:list' %}"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors {% if current_app == 'reminders' %}bg-slate-800 text-slate-100{% else %}text-slate-400 hover:bg-slate-800/60 hover:text-slate-200{% endif %}"
+           {% if current_app == 'reminders' %}aria-current="page"{% endif %}>
+          <svg class="h-5 w-5 shrink-0 {% if current_app == 'reminders' %}text-emerald-400{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
             <path d="M13.7 21a2 2 0 01-3.4 0"></path>
           </svg>
           <span>Lembretes do Dia</span>
-          <span class="ml-auto rounded-full border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">em breve</span>
-        </div>
+          {% if current_app == 'reminders' %}<span class="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true"></span>{% endif %}
+        </a>
       {% endwith %}
     </nav>
 

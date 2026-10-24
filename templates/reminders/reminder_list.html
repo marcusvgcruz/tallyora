@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Lembretes do Dia — Tallyora{% endblock %}
+
+{% block content %}
+  {% comment %}
+  ==========================================================================
+  reminders/reminder_list.html — lembretes do dia e dos próximos dias.
+
+  Contexto esperado da ReminderListView:
+    today_reminders      lista de DailyReminder de hoje
+    next_days_reminders  lista de DailyReminder dos próximos dias
+
+  Produto: lembrete é to-do SEM check. Não existe "concluído" — o item
+  sai da lista quando a data passa ou quando o usuário exclui.
+  ==========================================================================
+  {% endcomment %}
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-slate-100">Lembretes do Dia</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        O que não pode passar em branco hoje. Não há como marcar como feito: o lembrete fica na lista
+        até a data passar ou até você excluir.
+      </p>
+    </div>
+    <a href="{% url 'reminders:create' %}"
+       class="inline-flex w-fit items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14"></path>
+      </svg>
+      Novo lembrete
+    </a>
+  </div>
+
+  {% if today_reminders or next_days_reminders %}
+    {# ---------- Hoje ---------- #}
+    <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md" aria-labelledby="hoje-titulo">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-5 py-4">
+        <div class="flex items-center gap-2">
+          <h2 id="hoje-titulo" class="text-base font-semibold text-slate-100">Hoje</h2>
+          <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-emerald-400">
+            {{ today_reminders|length }}
+          </span>
+        </div>
+        <span class="text-xs text-slate-500">Lembretes do dia corrente</span>
+      </div>
+
+      {% if today_reminders %}
+        <ul class="divide-y divide-slate-800">
+          {% for lembrete in today_reminders %}
+            <li class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex min-w-0 items-start gap-3">
+                <span class="inline-flex shrink-0 items-center rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs font-semibold tabular-nums text-cyan-400">
+                  {{ lembrete.scheduled_label }}
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-slate-100">{{ lembrete.title }}</p>
+                  <p class="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                    <span class="tabular-nums">{{ lembrete.reminder_date|date:"d/m/Y" }}</span>
+                    {% if lembrete.is_from_calendar %}
+                      <span class="inline-flex items-center gap-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-cyan-400">
+                        agenda
+                      </span>
+                    {% endif %}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex shrink-0 items-center gap-2 sm:justify-end">
+                <a href="{% url 'reminders:delete' lembrete.pk %}"
+                   class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                   aria-label="Excluir lembrete {{ lembrete.title }}">
+                  Excluir
+                </a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-5 py-6 text-sm text-slate-400">Nenhum lembrete para hoje.</p>
+      {% endif %}
+    </section>
+
+    {# ---------- Próximos dias ---------- #}
+    <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md" aria-labelledby="proximos-titulo">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-5 py-4">
+        <div class="flex items-center gap-2">
+          <h2 id="proximos-titulo" class="text-base font-semibold text-slate-100">Próximos dias</h2>
+          <span class="inline-flex items-center rounded-full border border-slate-700 bg-slate-800/60 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-slate-400">
+            {{ next_days_reminders|length }}
+          </span>
+        </div>
+        <span class="text-xs text-slate-500">Ordenados por data e horário</span>
+      </div>
+
+      {% if next_days_reminders %}
+        <ul class="divide-y divide-slate-800">
+          {% for lembrete in next_days_reminders %}
+            <li class="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex min-w-0 items-start gap-3">
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs font-semibold tabular-nums text-slate-300">
+                  <svg class="h-3.5 w-3.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+                    <path d="M16 3v4M8 3v4M3 11h18"></path>
+                  </svg>
+                  {{ lembrete.reminder_date|date:"d/m" }}
+                </span>
+                <span class="inline-flex shrink-0 items-center rounded-lg border border-slate-700 bg-slate-900/60 px-2 py-1 text-xs font-semibold tabular-nums text-cyan-400">
+                  {{ lembrete.scheduled_label }}
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-slate-100">{{ lembrete.title }}</p>
+                  {% if lembrete.is_from_calendar %}
+                    <span class="mt-0.5 inline-flex items-center gap-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-cyan-400">
+                      agenda
+                    </span>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="flex shrink-0 items-center gap-2 sm:justify-end">
+                <a href="{% url 'reminders:delete' lembrete.pk %}"
+                   class="inline-flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                   aria-label="Excluir lembrete {{ lembrete.title }}">
+                  Excluir
+                </a>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="px-5 py-6 text-sm text-slate-400">Nenhum lembrete agendado para os próximos dias.</p>
+      {% endif %}
+    </section>
+  {% else %}
+    {% url 'reminders:create' as novo_lembrete_url %}
+    <div class="mt-6">
+      {% include 'partials/_empty_state.html' with title='Nenhum lembrete cadastrado' description='Anote contas a pagar, consultas e recados do dia. O lembrete aparece no painel do Dashboard enquanto a data não passa.' action_url=novo_lembrete_url action_label='Novo lembrete' %}
+    </div>
+  {% endif %}
+{% endblock %}

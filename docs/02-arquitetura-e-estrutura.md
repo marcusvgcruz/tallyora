@@ -48,6 +48,7 @@ tallyora/
 ├── transactions/           # app de transações, despesas fixas e motor de cálculo
 ├── goals_events/           # app de caixinhas e eventos (EventPlan, EventExpenseItem)
 ├── investments/            # app da carteira P3X (ativos, metas, cotações)
+├── reminders/              # app dos lembretes diários (to-do sem check)
 ├── investments/            # app de carteira
 └── reminders/              # app de lembretes
 ```
@@ -59,7 +60,7 @@ tallyora/
 | Camada | Arquivo | Regra |
 | :--- | :--- | :--- |
 | Configuração | `core/settings.py` | Única fonte de configuração; lê o `.env` via `python-dotenv` |
-| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/` e inclui as URLconfs das apps com prefixo (`perfil/`, `contas/`, `categorias/`, `transacoes/`, `caixinhas/`, `investimentos/`) |
+| Rotas raiz | `core/root_urls.py` | `ROOT_URLCONF`: publica `admin/` e inclui as URLconfs das apps com prefixo (`perfil/`, `contas/`, `categorias/`, `transacoes/`, `caixinhas/`, `investimentos/`, `lembretes/`) |
 | Rotas de app | `<app>/urls.py` | Arquivo por app com `app_name`; rotas nomeadas (`core:dashboard`, `core:landing`) |
 | Regras de dados | `<app>/models.py` | Todo model herda de `BaseModel`; campos em inglês |
 | Entrada de dados | `<app>/forms.py` | `ModelForm`/`Form` com validação em `clean()` e widgets estilizados via Tailwind |
@@ -158,6 +159,10 @@ que a visão única. O PRD não exige uma das duas.
 | `/investimentos/<pk>/excluir/` | `investments:asset_delete` | `AssetDeleteView` | autenticado (**POST**) |
 | `/investimentos/cotacoes/atualizar/` | `investments:refresh_quotes` | `RefreshQuotesView` | autenticado (**POST**) |
 | `/investimentos/metas/` | `investments:targets` | `AllocationTargetUpdateView` | autenticado (**POST**) |
+| `/dashboard/` | `core:dashboard` | `DashboardView` | autenticado |
+| `/lembretes/` | `reminders:list` | `ReminderListView` | autenticado |
+| `/lembretes/novo/` | `reminders:create` | `ReminderCreateView` | autenticado |
+| `/lembretes/<pk>/excluir/` | `reminders:delete` | `ReminderDeleteView` | autenticado (**POST**) |
 
 `Todo `.py` de dados (contas, categorias, descontos, transações, despesas fixas, caixinhas, eventos e ativos) usa `get_queryset()` filtrado por `request.user` — objeto de outro usuário devolve **404**, não 403 (RNF08).
 

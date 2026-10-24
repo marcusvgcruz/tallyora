@@ -78,14 +78,14 @@
 
 ---
 
-### Sprint 5: Dashboard Consolidado e Lembretes do Dia (To-Do sem Check + Google Calendar)
-- [ ] **5.1. Lembretes Diários sem Checkbox (`reminders`)**
-  - [ ] **5.1.1.** Criar o model `DailyReminder(BaseModel)` em `reminders/models.py` com `user`, `title`, `scheduled_time`, `reminder_date` (default `timezone.localdate`) e `external_google_event_id`.
-  - [ ] **5.1.2.** Criar `DailyReminderForm` e implementar `ReminderListView`, `ReminderCreateView` e `ReminderDeleteView` em `reminders/views.py` (sem campo ou ação de "marcar como concluído/check").
-  - [ ] **5.1.3.** Criar serviço opcional `GoogleCalendarSyncService` em `reminders/services.py` para ler os compromissos do dia da agenda do usuário (caso o token OAuth2 esteja configurado) e espelhá-los na listagem do dia.
-- [ ] **5.2. Construção do Dashboard Principal (`core`)**
-  - [ ] **5.2.1.** Implementar `DashboardView(LoginRequiredMixin, TemplateView)` em `core/views.py` consumindo dados do `FinancialCalculationService`, resumo das `GoalBox`, `EventPlan`, `InvestmentAsset` e `DailyReminder` do dia.
-  - [ ] **5.2.2.** Criar o template `core/dashboard.html` contendo:
+### Sprint 5: Dashboard Consolidado e Lembretes do Dia (To-Do sem Check + Google Calendar) — [x] CONCLUÍDA
+- [X] **5.1. Lembretes Diários sem Checkbox (`reminders`)**
+  - [X] **5.1.1.** Criar o model `DailyReminder(BaseModel)` em `reminders/models.py` com `user`, `title`, `scheduled_time`, `reminder_date` (default `timezone.localdate`) e `external_google_event_id`.
+  - [X] **5.1.2.** Criar `DailyReminderForm` e implementar `ReminderListView`, `ReminderCreateView` e `ReminderDeleteView` em `reminders/views.py` (sem campo ou ação de "marcar como concluído/check").
+  - [X] **5.1.3.** Criar serviço opcional `GoogleCalendarSyncService` em `reminders/services.py` para ler os compromissos do dia da agenda do usuário (caso o token OAuth2 esteja configurado) e espelhá-los na listagem do dia.
+- [X] **5.2. Construção do Dashboard Principal (`core`)**
+  - [X] **5.2.1.** Implementar `DashboardView(LoginRequiredMixin, TemplateView)` em `core/views.py` consumindo dados do `FinancialCalculationService`, resumo das `GoalBox`, `EventPlan`, `InvestmentAsset` e `DailyReminder` do dia.
+  - [X] **5.2.2.** Criar o template `core/dashboard.html` contendo:
     - Seletor de período (Mês/Ano e visão Mensal / 1ª Quinzena / 2ª Quinzena).
     - Linha de Cards principais: `Receita Líquida`, `Gastos na Conta`, `Fatura do Cartão`, `Investimentos & Caixinhas` e o card em destaque `Saldo Livre (O que sobra no mês)`.
     - Gráfico de Pizza/Donut (Chart.js) simples e limpo exibindo a distribuição do orçamento mensal.

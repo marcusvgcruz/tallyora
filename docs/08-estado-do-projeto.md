@@ -2,7 +2,7 @@
 
 Retrato do que existe em disco hoje (24/10/2026), verificado no código e no banco. O backlog completo e atualizado está em `../TASKS.md`.
 
-**Sprints 1 a 4 concluídas.** Sprint 4 fechou 4.1.1 a 4.1.5 (eventos) e 4.2.1 a 4.2.6 (carteira P3X). Restam as Sprints 5 (dashboard + lembretes) e 6 (testes, PEP8, Docker).
+**Sprints 1 a 5 concluídas.** A Sprint 5 fechou 5.1.1 a 5.1.3 (lembretes) e 5.2.1 a 5.2.2 (dashboard). Resta a Sprint 6 (testes automatizados, PEP8 e Docker).
 
 ## Implementado
 
@@ -37,33 +37,36 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 | Motor de cálculo (3.3.1 a 3.3.4) | `transactions/services.py`: `Period` + `FinancialCalculationService.summary()` — receita, gastos na conta, fatura sem duplicidade, investimentos, caixinhas e **saldo livre** |
 | Regra da fatura (3.3.3) | se existe lançamento `CREDIT_CARD_BILL` no período, ele é a fatura; os itens de cartão não são somados de novo |
 | Telas (3.1.4 / 3.2.3) | transações com filtro e KPIs, despesas fixas, caixinhas com barra de progresso |
-| Sidebar | links reais para Perfil, Contas & Cartões, Categorias, Transações & Fatura e Caixinhas & Eventos; investimentos e lembretes seguem "em breve" |
+| Sidebar | todos os links ativos: Perfil, Contas & Cartões, Categorias, Transações & Fatura, Caixinhas & Eventos, Investimentos e Lembretes do Dia |
 | Design system | `base.html`/`base_public.html` + partials (`_card_kpi`, `_empty_state`, `_modal_confirm_delete`, `_form_field`) |
 | Tailwind compilado | `django-tailwind` + CLI standalone; `manage.py tailwind build` → `theme/static/css/dist/styles.css` (versionado, sem CDN) |
 | Isolamento de dados (RNF08) | `get_queryset()` filtrado por `request.user`; objeto de outro usuário devolve 404 |
-| Dashboard provisório | `DashboardView` + `templates/core/dashboard.html` (KPIs vazios + aviso de que os dados entram na Sprint 5) |
+| Dashboard (5.2.1 / 5.2.2) | `DashboardView` consome `summary()` e monta o contexto; tela com seletor de período, 4 KPIs + Saldo Livre em destaque, rosca Chart.js local com legenda server-side, painel de lembretes do dia, resumo de caixinhas e eventos, patrimônio e estado vazio |
+| `DailyReminder` (5.1.1) | lembrete com `scheduled_time`, `reminder_date` e `external_google_event_id`; **sem estado de concluído**; unicidade por dia/horário/título |
+| CRUD de lembretes (5.1.2) | lista (hoje + próximos dias), criação e exclusão, tudo filtrado por usuário, sem nenhuma ação de "marcar como feito" |
+| `GoogleCalendarSyncService` (5.1.3) | leitura opcional via OAuth2 refresh token (Calendar API v3, só `urllib`), `todays_events()` e `sync_today()` com espelho em `DailyReminder`; sem credencial degrada para lista vazia |
 | `.gitignore` + `.env.example` | excluem `venv/`, `__pycache__/`, `db.sqlite3`, `.env` e `node_modules/`; CSS compilado é versionado |
 | Repositório publicado | `main` → https://github.com/marcusvgcruz/tallyora (público) |
 
 ## Não implementado
 
-- `reminders` continua com `models.py`, `views.py`, `admin.py` e `tests.py` vazios (Sprint 5).
+- **A integração com o Google Calendar nunca foi exercitada contra a API real** — não há credencial nesta VPS. Tudo (token, eventos, 401/403, JSON inválido) foi validado com `urlopen` mockado.
+- Não existe tela para disparar `sync_today()`: o serviço está pronto e testado, mas o gatilho (botão ou cron) não foi pedido por nenhuma sub-tarefa.
 - Cripto não tem cotação automática (só renda fixa manual e renda variável pela B3); a classe entra em `skipped` com motivo "cotação manual".
 - O peso por ativo (`target_percentage_in_class`) é guardado e exibido, mas ainda não compara com o real — o badge é por classe, não por ativo.
-- O `FinancialCalculationService` não tem tela própria: o dashboard que consome `summary()` é a Sprint 5.
-- Sem Chart.js, sem dashboard real e sem lembretes.
 - Sem recuperação de senha, onboarding em `/profile/setup/` e verificação de e-mail.
 - Sem Docker e sem suíte de testes automatizados (as verificações são scripts de smoke com rollback, não `tests.py`).
 - Sem paginação ou busca nas listagens.
 
-## Próximos passos (Sprint 5)
+## Próximos passos (Sprint 6)
 
 | Bloco | O que entrega |
 | :--- | :--- |
-| 5.1.x | Dashboard consolidado consumindo `FinancialCalculationService.summary()` |
-| 5.2.x | Lembretes do dia (to-do sem check) e integração com Google Calendar |
+| 6.1.x | Suíte de testes automatizados (`tests.py` por app), substituindo os scripts de smoke |
+| 6.2.x | PEP8 (linhas ≤ 79), revisão de imports e limpeza |
+| 6.3.x | Docker + `docker-compose` e fechamento da documentação |
 
-Depois: Sprint 6 (testes automatizados, PEP8, Docker).
+Pendências que a Sprint 6 não cobre: disparo do `sync_today()` (cron ou botão), paginação nas listagens e cotação de cripto.
 
 ## Divergências entre o que está definido e o que está no disco
 
@@ -74,7 +77,7 @@ Depois: Sprint 6 (testes automatizados, PEP8, Docker).
 | Rotas raiz | `core/urls.py` como `ROOT_URLCONF` | `core/root_urls.py` é o root (necessário para o namespace `core:` existir); `core/urls.py` é a URLconf da app |
 | Prefixo das rotas de dados | não definido | `/perfil/`, `/contas/`, `/categorias/`, `/transacoes/`, `/caixinhas/` — com `path('', include(...))` os `name='list'`/`name='profile'` colidiriam entre apps e com a landing em `/` |
 | Onboarding | `/profile/setup/` no PRD | edição direta em `/perfil/` (onboarding não é tarefa do backlog) |
-| Dashboard | RF16 completo na Sprint 5 | tela provisória, só com aviso e KPIs vazios |
+| Dashboard | RF16 completo | entregue na Sprint 5 (5.2.1 / 5.2.2) |
 | Tailwind | "CDN configurada ou CLI standalone" | CLI standalone via `django-tailwind` (build local, sem CDN) |
 | Exclusão de desconto de folha | "exclusão sempre com confirmação" | `confirm()` + POST na própria página de perfil (as listas usam página de confirmação) |
 | Despesa fixa e quinzenas | TASKS só define `billing_cycle` | além do ciclo, o `due_day` decide a quinzena — sem isso a despesa `MONTHLY` desaparecia das visões de quinzena (ver `docs/05`, §1.1) |

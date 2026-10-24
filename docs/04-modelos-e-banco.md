@@ -1,6 +1,6 @@
 # 04 — Modelos e Banco de Dados
 
-Estado real do código (24/10/2026): **Sprints 1 a 4 implementadas** — `BaseModel`, `CustomUser`, `UserProfile`, `PayrollDeduction`, `BankAccount`, `Category`, `Transaction`, `RecurringExpense`, `GoalBox`, `EventPlan`, `EventExpenseItem`, `AssetAllocationTarget` e `InvestmentAsset` existem e estão migrados. Só `reminders` (Sprint 5) segue desenhado como *planejado*.
+Estado real do código (24/10/2026): **Sprints 1 a 5 implementadas** — `BaseModel`, `CustomUser`, `UserProfile`, `PayrollDeduction`, `BankAccount`, `Category`, `Transaction`, `RecurringExpense`, `GoalBox`, `EventPlan`, `EventExpenseItem`, `AssetAllocationTarget`, `InvestmentAsset` e `DailyReminder` existem e estão migrados. Não há mais model planejado sem código; `reminders` saiu do desenho para a implementação.
 
 ## Convenções gerais
 
@@ -110,15 +110,16 @@ Relação: um `GoalBox` pode financiar vários `EventPlan` (FK opcional, `SET_NU
 
 `InvestmentAsset` expõe properties calculadas: `total_invested` (`quantity * average_price`), `current_total_value` (`quantity * current_price`), `profit_loss_amount`, `profit_loss_percentage` (0 quando o investido é 0, para não dividir por zero).
 
-## Desenho de dados das sprints futuras (*planejado*)
-
-### `reminders` (Sprint 5)
+## `reminders`
 
 | Model | Campos principais |
 | :--- | :--- |
-| `DailyReminder` | `user`, `title`, `scheduled_time`, `reminder_date` (default `timezone.localdate`), `external_google_event_id` |
+| `DailyReminder` | `user` (`related_name='daily_reminders'`), `title`, `scheduled_time`, `reminder_date` (default `timezone.localdate`), `external_google_event_id` |
 
-Não existe campo de conclusão/`is_done` — decisão de produto: o mural não tem check (RF15).
+- **Sem campo de conclusão/`is_done`** — decisão de produto: o mural não tem check (RF15). O lembrete sai da tela quando a data passa ou quando é excluído.
+- `UniqueConstraint(user, reminder_date, scheduled_time, title)` (`unique_reminder_per_user_day_slot`) impede o mesmo lembrete duplicado no mesmo horário.
+- `external_google_event_id` marca o que veio da agenda; linha com id é espelho e pode ser removida pela sincronização, linha sem id é manual e nunca é tocada por ela.
+- Properties: `is_from_calendar` e `scheduled_label` ('08:30').
 
 ## Banco de dados
 
@@ -127,7 +128,8 @@ Não existe campo de conclusão/`is_done` — decisão de produto: o mural não 
 - **PostgreSQL 16.15** é o único banco: `django.db.backends.postgresql`, database/role `tallyora` em `127.0.0.1:5432`.
 - Credenciais (`DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`) vêm do `.env` via `python-dotenv`; `SECRET_KEY` é obrigatória.
 - `db.sqlite3` foi removido do projeto e está no `.gitignore`.
-- Migrações aplicadas: `users.0001_initial`, `profiles.0001_initial`, `accounts.0001_initial`, `categories.0001_initial`, `transactions.0001_initial`, `goals_events.0001_initial`, `goals_events.0002_eventplan_eventexpenseitem`, `investments.0001_initial` + migrações padrão do Django.
+- Migrações aplicadas: `users.0001_initial`, `profiles.0001_initial`, `accounts.0001_initial`, `categories.0001_initial`, `transactions.0001_initial`, `goals_events.0001_initial`, `goals_events.0002_eventplan_eventexpenseitem`, `investments.0001_initial`, `reminders.0001_initial` + migrações padrão do Django.
+- **Desenvolvimento local:** com `APP_ENV=dev` o banco é o SQLite `db.sqlite3` (`dev` é o padrão); com `APP_ENV=prd` é o PostgreSQL acima. Ver `docs/07`.
 
 ### Migrações
 

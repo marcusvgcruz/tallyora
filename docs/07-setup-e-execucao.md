@@ -21,6 +21,33 @@ O banco é escolhido pela variável `APP_ENV` do `.env`:
 - `db.sqlite3` é **por máquina** e está no `.gitignore`: nunca é commitado nem compartilhado.
 - O mesmo banco não é compartilhado entre modos; migrar em `prd` não cria tabelas no SQLite e vice-versa.
 
+## Variáveis de ambiente
+
+| Variável | Obrigatória? | Para que serve |
+| :--- | :--- | :--- |
+| `SECRET_KEY` | **sim** | chave do Django; gere uma por ambiente |
+| `DEBUG` | não | default por ambiente (`True` em `dev`, `False` em `prd`) |
+| `APP_ENV` | não | `dev` (SQLite) ou `prd` (PostgreSQL); default `dev` |
+| `DB_NAME` / `DB_USER` / `DB_PASSWORD` / `DB_HOST` / `DB_PORT` | só em `prd` | conexão PostgreSQL |
+| `BRAPI_TOKEN` | não | cotações extras; a B3 não pede chave |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REFRESH_TOKEN` | não | espelho opcional do Google Calendar |
+
+### Google Calendar (opcional)
+
+Sem as três variáveis `GOOGLE_*`, os lembretes funcionam 100% por cadastro manual e o
+dashboard apenas informa que a integração não está configurada. Para ligar:
+
+1. No Google Cloud Console, crie um OAuth Client do tipo *Desktop app* e habilite a
+   **Google Calendar API**.
+2. Autorize uma vez com o escopo `https://www.googleapis.com/auth/calendar.readonly` e
+   guarde o `refresh_token` devolvido.
+3. Preencha `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` e `GOOGLE_REFRESH_TOKEN` no `.env`
+   (nunca no código, nunca no Git) e reinicie o processo.
+
+O serviço fala direto com a API v3 usando só a biblioteca padrão do Python — não há
+dependência nova. Ele **lê** a agenda e espelha os eventos do dia em `DailyReminder`;
+não escreve nada no Google.
+
 ## Primeira execução (5 comandos)
 
 ```bash

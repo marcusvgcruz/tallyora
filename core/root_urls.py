@@ -13,4 +13,5 @@ urlpatterns = [
     path('transacoes/', include('transactions.urls')),
     path('caixinhas/', include('goals_events.urls')),
     path('investimentos/', include('investments.urls')),
+    path('lembretes/', include('reminders.urls')),
 ]

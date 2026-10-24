@@ -135,6 +135,14 @@ Cinco KPIs em `lg:grid-cols-5` (partial `_card_kpi` com `tone`): Custo Total do 
 
 Chart.js 4.4.6 **local** (`theme/static/js/chart.umd.min.js`, sem CDN), dois anéis: divisão atual (interno) e meta por classe (externo). Os dados chegam por `{{ chart_data|json_script:"portfolio-chart-data" }}` — nunca por interpolação inline no script. Canvas `id="portfolio-chart"` com altura fixa (`h-72`).
 
+### Gráfico de rosca do dashboard
+
+`core/dashboard.html` usa o mesmo Chart.js local (`{% static 'js/chart.umd.min.js' %}`) e recebe os dados por `{{ chart_data|json_script:"dashboard-chart-data" }}`. Canvas `id="dashboard-chart"` em `h-64`, legenda renderizada no servidor ao lado (valor em R$ e percentual por `{% widthratio %}`), de modo que a leitura não depende de tooltip nem de JavaScript. Sem valores no período, o card mostra o texto "Sem movimento no período".
+
+### Painel Lembretes de Hoje (sem check)
+
+O painel lateral do dashboard e a lista `reminders/reminder_list.html` mostram horário (`scheduled_label`) e título. **Não existe checkbox nem "concluído"**: lembrete é to-do sem check, por decisão de produto — ele sai da lista quando a data passa ou quando é excluído. Itens espelhados do Google Calendar levam a marca discreta `agenda`; a integração é opcional e, sem token, o painel apenas informa que não está configurada.
+
 ### Badge Aportar / Aguardar
 
 Compara o peso atual da classe com a meta: `Aportar` (abaixo da meta, esmeralda) ou `Aguardar` (na meta ou acima, slate). É a leitura de onde colocar o próximo aporte.
@@ -146,7 +154,7 @@ Faixa âmbar (`bg-amber-500/5` + `border-amber-500/30`) quando a soma das metas 
 ## 6. Layout da área logada
 
 - **Sidebar fixa no desktop** (`w-64`, `bg-slate-900 border-r border-slate-800`): logo Tallyora em gradiente, links com ícone + texto e estado ativo destacado, botão de logout no rodapé.
-- **Itens de navegação:** Dashboard, Meu Perfil & Salário, Transações & Fatura (`transactions:list`), Caixinhas & Eventos (`goals:list`), Investimentos P3X e Lembretes do Dia (estes dois ainda como "em breve", `div` não clicável, até as sprints 4 e 5).
+- **Itens de navegação:** Dashboard (`core:dashboard`), Meu Perfil & Salário (`profiles:profile`), Contas & Cartões (`accounts:list`), Categorias (`categories:list`), Transações & Fatura (`transactions:list`), Caixinhas & Eventos (`goals:list`), Investimentos P3X (`investments:portfolio`) e Lembretes do Dia (`reminders:list`). Todos são links ativos; o estado ativo usa `request.resolver_match.app_name`.
 - **Área de conteúdo:** `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8`, com grids responsivos `grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6`.
 - **Sidebar responsiva:** recolhe em telas pequenas; no mobile a navegação vira menu colapsável.
 - **Mensagens do sistema:** bloco de alerta no topo do `base.html` usando `django.contrib.messages` (sucesso, erro, aviso).

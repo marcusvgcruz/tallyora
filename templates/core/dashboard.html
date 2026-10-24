@@ -1,52 +1,485 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Dashboard — Tallyora{% endblock %}
+{% block title %}Dashboard — {{ period.label }} — Tallyora{% endblock %}
 
 {% block content %}
-  <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+  {% comment %}
+  ==========================================================================
+  core/dashboard.html — painel consolidado do período.
+
+  Contexto da DashboardView:
+    period (.label, .kind_label, .year, .month) · period_choices · month_names
+    years · filters · summary · net_income · cash_expenses · credit_card_bill
+    investment_allocation · goal_box_contributions · event_contributions
+    free_balance · total_committed · chart_data · goal_boxes
+    total_box_balance · active_events · total_event_paid · total_event_cost
+    assets · portfolio_value · reminders_today · reminders_count
+    external_events · calendar_configured
+  ==========================================================================
+  {% endcomment %}
+
+  {# ---------- Cabeçalho ---------- #}
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <h1 class="text-2xl font-bold tracking-tight text-slate-100">Dashboard</h1>
-      <p class="mt-1 text-sm text-slate-400">Visão geral do seu mês financeiro.</p>
+      <p class="mt-1 text-sm text-slate-400">
+        Seu mês financeiro em uma tela: o que entra, o que está comprometido e o que sobra.
+      </p>
+      <p class="mt-2 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-400">
+        <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+          <path d="M16 3v4M8 3v4M3 11h18"></path>
+        </svg>
+        <span class="tabular-nums">{{ period.label }}</span>
+      </p>
     </div>
-    <span class="inline-flex w-fit items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-400">
-      <span class="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true"></span>
-      Em construção
-    </span>
+
+    <a href="{% url 'reminders:list' %}"
+       class="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.7 21a2 2 0 01-3.4 0"></path>
+      </svg>
+      Lembretes
+    </a>
   </div>
 
-  <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-5 backdrop-blur-md">
-    <div class="flex items-start gap-3">
-      <span class="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-400">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"></circle>
-          <path d="M12 8h.01M11 12h1v4h1"></path>
-        </svg>
-      </span>
+  {# ---------- Seletor de período ---------- #}
+  <form method="get" action="{% url 'core:dashboard' %}"
+        class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/80 p-4 shadow-xl backdrop-blur-md"
+        aria-label="Seletor de período do dashboard">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <div>
-        <p class="text-sm font-semibold text-slate-100">Os indicadores deste painel entram na Sprint 5.</p>
-        <p class="mt-1 text-sm text-slate-400">
-          Os cards consolidados, o gráfico de orçamento e o painel de lembretes do dia ainda não estão
-          disponíveis. Nada é exibido aqui para não mostrar números sem os seus lançamentos.
+        <label for="filtro-mes" class="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Mês</label>
+        <select id="filtro-mes" name="mes"
+                class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm text-slate-100 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+          {% for nome in month_names %}
+            <option value="{{ forloop.counter }}" {% if filters.month == forloop.counter %}selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-ano" class="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Ano</label>
+        <select id="filtro-ano" name="ano"
+                class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm tabular-nums text-slate-100 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+          {% for ano in years %}
+            <option value="{{ ano }}" {% if filters.year == ano %}selected{% endif %}>{{ ano }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-periodo" class="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">Visão</label>
+        <select id="filtro-periodo" name="periodo"
+                class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-sm text-slate-100 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50">
+          {% for valor, rotulo in period_choices %}
+            <option value="{{ valor }}" {% if filters.period == valor %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="flex items-end">
+        <button type="submit"
+                class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:from-emerald-300 hover:to-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          Aplicar
+        </button>
+      </div>
+    </div>
+  </form>
+
+  {% url 'goals:list' as caixinhas_url %}
+  {% url 'goals:event_list' as eventos_url %}
+  {% url 'investments:portfolio' as carteira_url %}
+  {% url 'reminders:create' as novo_lembrete_url %}
+  {% url 'reminders:list' as lembretes_url %}
+
+  {# ---------- Cards do período ---------- #}
+  <section class="mt-6" aria-labelledby="cards-periodo-titulo">
+    <h2 id="cards-periodo-titulo" class="sr-only">Indicadores do período</h2>
+
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-2">
+        {% with valor=net_income|floatformat:"2g" %}
+          {% include 'partials/_card_kpi.html' with label='Receita Líquida' value='R$ '|add:valor tone='positive' %}
+        {% endwith %}
+
+        {% with valor=cash_expenses|floatformat:"2g" %}
+          {% include 'partials/_card_kpi.html' with label='Gastos na Conta' value='R$ '|add:valor tone='negative' %}
+        {% endwith %}
+
+        {% with valor=credit_card_bill|floatformat:"2g" %}
+          {% include 'partials/_card_kpi.html' with label='Fatura do Cartão' value='R$ '|add:valor tone='warning' %}
+        {% endwith %}
+
+        <div class="flex flex-col justify-between rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md">
+          <span class="text-xs font-medium uppercase tracking-wider text-slate-400">Investimentos &amp; Caixinhas</span>
+          <span class="mt-2 text-2xl font-bold tabular-nums text-cyan-400">R$ {{ total_committed|floatformat:"2g" }}</span>
+          <span class="mt-1 text-xs text-slate-500 tabular-nums">
+            Invest. R$ {{ investment_allocation|floatformat:"2g" }}
+            · Caixinhas R$ {{ goal_box_contributions|floatformat:"2g" }}
+            · Eventos R$ {{ event_contributions|floatformat:"2g" }}
+          </span>
+        </div>
+      </div>
+
+      {# ---------- Saldo Livre (destaque) ---------- #}
+      <div class="flex flex-col justify-between rounded-3xl border p-6 shadow-xl backdrop-blur-md
+        {% if free_balance < 0 %}border-rose-500/30 bg-rose-500/10{% else %}border-emerald-500/30 bg-emerald-500/10{% endif %}">
+        <div class="flex items-start justify-between gap-3">
+          <span class="text-xs font-semibold uppercase tracking-wider {% if free_balance < 0 %}text-rose-300{% else %}text-emerald-300{% endif %}">
+            Saldo Livre <span class="block font-normal normal-case tracking-normal text-slate-400">(o que sobra no mês)</span>
+          </span>
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border {% if free_balance < 0 %}border-rose-500/20 bg-rose-500/10 text-rose-400{% else %}border-emerald-500/20 bg-emerald-500/10 text-emerald-400{% endif %}">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 17l5-6 4 3 5-7 4 4"></path>
+              <path d="M3 21h18"></path>
+            </svg>
+          </span>
+        </div>
+
+        <span class="mt-3 text-4xl font-extrabold tracking-tight tabular-nums {% if free_balance < 0 %}text-rose-400{% else %}text-emerald-400{% endif %}">
+          R$ {{ free_balance|floatformat:"2g" }}
+        </span>
+
+        <p class="mt-3 text-xs {% if free_balance < 0 %}text-rose-300/80{% else %}text-emerald-200/70{% endif %}">
+          {% if free_balance < 0 %}
+            O período fechou no vermelho: os gastos e compromissos passaram da receita líquida.
+          {% else %}
+            Depois de gastos, fatura e de separar investimentos, caixinhas e eventos.
+          {% endif %}
         </p>
       </div>
     </div>
+  </section>
+
+  <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+    {% if not chart_data.values and not goal_boxes and not active_events and not assets and not reminders_today %}
+      {# ---------- Estado vazio geral ---------- #}
+      <div class="lg:col-span-2">
+        {% include 'partials/_empty_state.html' with title='Nada cadastrado ainda' description='Registre seus lançamentos, crie caixinhas, planeje eventos e cadastre seus ativos. Assim que houver dados, este painel mostra a distribuição do orçamento, os lembretes do dia e o Saldo Livre do período.' action_url=caixinhas_url action_label='Começar pelas caixinhas' %}
+      </div>
+    {% else %}
+      {# ---------- Gráfico de rosca ---------- #}
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md lg:col-span-2" aria-labelledby="distribuicao-titulo">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 id="distribuicao-titulo" class="text-base font-semibold text-slate-100">Distribuição do orçamento</h2>
+            <p class="mt-1 text-xs text-slate-500">Como a receita líquida de {{ period.label }} foi dividida.</p>
+          </div>
+          <span class="text-xs text-slate-500 tabular-nums">Total: R$ {{ chart_data.total|floatformat:"2g" }}</span>
+        </div>
+
+        {% if chart_data.values %}
+          <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-5">
+            <div class="h-64 sm:col-span-3">
+              <canvas id="dashboard-chart" role="img"
+                      aria-label="Gráfico de rosca com a distribuição do orçamento entre gastos, compromissos e saldo livre"></canvas>
+            </div>
+
+            <ul class="flex flex-col justify-center gap-3 sm:col-span-2">
+              {% for rotulo in chart_data.labels %}
+                <li class="rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-2.5">
+                  <div class="flex items-start gap-2">
+                    <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full
+                      {% if forloop.counter == 1 %}bg-cyan-400{% elif forloop.counter == 2 %}bg-indigo-400{% elif forloop.counter == 3 %}bg-emerald-400{% else %}bg-slate-400{% endif %}"
+                          aria-hidden="true"></span>
+                    <div class="min-w-0">
+                      <p class="text-xs font-medium text-slate-300">{{ rotulo }}</p>
+                      <p class="mt-0.5 text-sm font-semibold tabular-nums text-slate-100">
+                        {% for valor in chart_data.values %}{% if forloop.counter == forloop.parentloop.counter %}R$ {{ valor|floatformat:"2g" }}{% endif %}{% endfor %}
+                        <span class="ml-1 text-xs font-medium text-slate-500">
+                          {% for valor in chart_data.values %}{% if forloop.counter == forloop.parentloop.counter %}{% widthratio valor chart_data.total 100 %}%{% endif %}{% endfor %}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <noscript>
+            <p class="mt-4 rounded-xl border border-slate-800 bg-slate-800/60 px-4 py-3 text-xs text-slate-400">
+              O gráfico precisa de JavaScript. Os valores e percentuais continuam disponíveis na legenda ao lado.
+            </p>
+          </noscript>
+        {% else %}
+          <div class="mt-4 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 px-5 py-10 text-center">
+            <p class="text-sm font-medium text-slate-300">Sem movimento no período</p>
+            <p class="mx-auto mt-1 max-w-sm text-xs text-slate-500">
+              Nenhuma receita, gasto ou compromisso registrado em {{ period.label }}. O gráfico aparece assim que houver lançamentos.
+            </p>
+          </div>
+        {% endif %}
+      </section>
+    {% endif %}
+
+      {# ---------- Lembretes de hoje ---------- #}
+      <aside class="flex flex-col rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md" aria-labelledby="lembretes-hoje-titulo">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h2 id="lembretes-hoje-titulo" class="text-base font-semibold text-slate-100">Lembretes de Hoje</h2>
+            <p class="mt-1 text-xs text-slate-500">
+              <span class="tabular-nums">{{ reminders_count }}</span>
+              {% if reminders_count == 1 %}lembrete para hoje{% else %}lembretes para hoje{% endif %}
+            </p>
+          </div>
+          <a href="{{ novo_lembrete_url }}"
+             class="inline-flex shrink-0 items-center rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+            + Adicionar
+          </a>
+        </div>
+
+        {% if reminders_today %}
+          <ul class="mt-4 space-y-2">
+            {% for lembrete in reminders_today %}
+              <li class="flex items-start gap-3 rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-2.5">
+                <span class="shrink-0 rounded-lg border border-slate-700 bg-slate-900/60 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-cyan-400">{{ lembrete.scheduled_label }}</span>
+                <div class="min-w-0">
+                  <p class="text-sm text-slate-200">{{ lembrete.title }}</p>
+                  {% if lembrete.is_from_calendar %}
+                    <span class="mt-1 inline-flex items-center gap-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-cyan-400">agenda</span>
+                  {% endif %}
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="mt-4 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 px-4 py-6 text-center">
+            <p class="text-sm font-medium text-slate-300">Nenhum lembrete para hoje</p>
+            <p class="mt-1 text-xs text-slate-500">Anote o que não pode esquecer no dia.</p>
+          </div>
+        {% endif %}
+
+        {% if external_events %}
+          <div class="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 px-3 py-3">
+            <p class="text-[11px] font-semibold uppercase tracking-wider text-cyan-400">Da sua agenda</p>
+            <ul class="mt-2 space-y-1.5">
+              {% for evento in external_events %}
+                <li class="flex items-start gap-2 text-xs">
+                  <span class="shrink-0 font-semibold tabular-nums text-cyan-400">
+                    {% if evento.is_all_day %}dia todo{% else %}{{ evento.time_label }}{% endif %}
+                  </span>
+                  {% if evento.html_link %}
+                    <a href="{{ evento.html_link }}" target="_blank" rel="noopener noreferrer"
+                       class="min-w-0 truncate text-slate-300 underline decoration-slate-600 underline-offset-2 transition-colors hover:text-cyan-400">{{ evento.title }}</a>
+                  {% else %}
+                    <span class="min-w-0 truncate text-slate-300">{{ evento.title }}</span>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {% if not calendar_configured %}
+          <p class="mt-4 rounded-xl border border-slate-800 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
+            A integração com o Google Calendar é opcional e não está configurada — os lembretes acima são os que você criou aqui no Tallyora.
+          </p>
+        {% endif %}
+
+        <a href="{{ lembretes_url }}"
+           class="mt-4 inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+          Ver todos
+          <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18l6-6-6-6"></path>
+          </svg>
+        </a>
+      </aside>
   </div>
 
-  <section class="mt-8" aria-labelledby="indicadores-titulo">
-    <h2 id="indicadores-titulo" class="text-xs font-medium uppercase tracking-wider text-slate-400">Indicadores do período</h2>
-    <div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {% include 'partials/_card_kpi.html' with label='Receita Líquida do Período' value='R$ —' tone='neutral' %}
-      {% include 'partials/_card_kpi.html' with label='Total de Despesas' value='R$ —' tone='neutral' %}
-      {% include 'partials/_card_kpi.html' with label='Fatura do Cartão' value='R$ —' tone='neutral' %}
-      {% include 'partials/_card_kpi.html' with label='Total Alocado' value='R$ —' tone='neutral' %}
-    </div>
-    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-      {% include 'partials/_card_kpi.html' with label='Saldo Livre no Mês (O que sobra)' value='R$ —' tone='neutral' %}
-    </div>
-  </section>
+  {% if chart_data.values or goal_boxes or active_events or assets or reminders_today %}
+    {# ---------- Caixinhas e eventos ---------- #}
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md" aria-labelledby="caixinhas-titulo">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 id="caixinhas-titulo" class="text-base font-semibold text-slate-100">Caixinhas</h2>
+            <p class="mt-1 text-xs text-slate-500 tabular-nums">Total guardado: R$ {{ total_box_balance|floatformat:"2g" }}</p>
+          </div>
+          <a href="{{ caixinhas_url }}"
+             class="inline-flex items-center gap-1 text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50">
+            Ver caixinhas
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </a>
+        </div>
 
-  <section class="mt-8" aria-labelledby="vazio-titulo">
-    <h2 id="vazio-titulo" class="sr-only">Estado inicial do dashboard</h2>
-    {% include 'partials/_empty_state.html' with title='Seu resumo financeiro começa no seu perfil' description='Quando o perfil financeiro e os lançamentos entrarem no ar, este painel mostra receita líquida, despesas, fatura do cartão, total alocado e o Saldo Livre do mês.' %}
-  </section>
+        {% if goal_boxes %}
+          <ul class="mt-4 space-y-3">
+            {% for caixinha in goal_boxes %}
+              <li class="rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-3">
+                <div class="flex items-start justify-between gap-3">
+                  <span class="truncate text-sm font-medium text-slate-200">{{ caixinha.name }}</span>
+                  <span class="shrink-0 text-sm font-semibold tabular-nums text-cyan-400">R$ {{ caixinha.current_balance|floatformat:"2g" }}</span>
+                </div>
+                <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-800"
+                     role="progressbar"
+                     aria-valuenow="{{ caixinha.progress_percentage|floatformat:0 }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                     aria-label="Progresso da caixinha {{ caixinha.name }}">
+                  <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
+                       style="width: {{ caixinha.progress_percentage|floatformat:0 }}%"></div>
+                </div>
+                <div class="mt-1.5 flex items-center justify-between gap-2 text-xs tabular-nums">
+                  <span class="text-slate-500">Meta R$ {{ caixinha.target_amount|floatformat:"2g" }}</span>
+                  <span class="font-medium text-slate-400">{{ caixinha.progress_percentage|floatformat:0 }}%</span>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="mt-4 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 px-4 py-6 text-center text-xs text-slate-500">
+            Nenhuma caixinha criada ainda — use <a href="{{ caixinhas_url }}" class="font-medium text-cyan-400 underline decoration-cyan-500/40 underline-offset-2">Caixinhas &amp; Eventos</a> para separar dinheiro por objetivo.
+          </p>
+        {% endif %}
+      </section>
+
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md" aria-labelledby="eventos-titulo">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 id="eventos-titulo" class="text-base font-semibold text-slate-100">Eventos ativos</h2>
+            <p class="mt-1 text-xs text-slate-500 tabular-nums">
+              Pago R$ {{ total_event_paid|floatformat:"2g" }} de R$ {{ total_event_cost|floatformat:"2g" }}
+            </p>
+          </div>
+          <a href="{{ eventos_url }}"
+             class="inline-flex items-center gap-1 text-xs font-medium text-cyan-400 transition-colors hover:text-cyan-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500/50">
+            Ver eventos
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </a>
+        </div>
+
+        {% if active_events %}
+          <ul class="mt-4 space-y-3">
+            {% for evento in active_events %}
+              <li class="rounded-xl border border-slate-800 bg-slate-800/60 px-3 py-3">
+                <div class="flex items-start justify-between gap-3">
+                  <span class="truncate text-sm font-medium text-slate-200">{{ evento.title }}</span>
+                  <span class="shrink-0 text-xs tabular-nums text-slate-500">{{ evento.event_date|date:"d/m/Y" }}</span>
+                </div>
+                <div class="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <span class="block text-[11px] uppercase tracking-wider text-slate-500">Falta pagar</span>
+                    <span class="block text-sm font-semibold tabular-nums {% if evento.remaining_to_pay > 0 %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                      R$ {{ evento.remaining_to_pay|floatformat:"2g" }}
+                    </span>
+                  </div>
+                  <div>
+                    <span class="block text-[11px] uppercase tracking-wider text-slate-500">Falta guardar</span>
+                    <span class="block text-sm font-semibold tabular-nums {% if evento.amount_still_needed > 0 %}text-rose-400{% else %}text-emerald-400{% endif %}">
+                      R$ {{ evento.amount_still_needed|floatformat:"2g" }}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="mt-4 rounded-xl border border-dashed border-slate-800 bg-slate-900/50 px-4 py-6 text-center text-xs text-slate-500">
+            Nenhum evento ativo — planeje um casamento ou viagem em <a href="{{ eventos_url }}" class="font-medium text-cyan-400 underline decoration-cyan-500/40 underline-offset-2">Eventos</a> para acompanhar o que falta pagar.
+          </p>
+        {% endif %}
+      </section>
+    </div>
+
+    {# ---------- Patrimônio investido ---------- #}
+    <section class="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md sm:flex-row sm:items-center sm:justify-between" aria-labelledby="patrimonio-titulo">
+      <div>
+        <h2 id="patrimonio-titulo" class="text-xs font-medium uppercase tracking-wider text-slate-400">Patrimônio investido</h2>
+        <p class="mt-2 text-2xl font-bold tabular-nums text-slate-100">R$ {{ portfolio_value|floatformat:"2g" }}</p>
+        <p class="mt-1 text-xs text-slate-500">
+          {{ assets|length }} {% if assets|length == 1 %}ativo cadastrado{% else %}ativos cadastrados{% endif %} na carteira P3X.
+        </p>
+      </div>
+      <a href="{{ carteira_url }}"
+         class="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50">
+        <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 17l5-6 4 3 5-7 4 4"></path>
+          <path d="M3 21h18"></path>
+        </svg>
+        Abrir carteira
+      </a>
+    </section>
+  {% endif %}
+
+  {% if chart_data.values %}
+    {{ chart_data|json_script:"dashboard-chart-data" }}
+  {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  {% if chart_data.values %}
+    <script src="{% static 'js/chart.umd.min.js' %}"></script>
+    <script>
+      (function () {
+        var dataNode = document.getElementById('dashboard-chart-data');
+        var canvas = document.getElementById('dashboard-chart');
+        if (!dataNode || !canvas || typeof Chart === 'undefined') { return; }
+
+        function toNumbers(values) {
+          return (values || []).map(function (value) {
+            var parsed = Number(value);
+            return isFinite(parsed) ? parsed : 0;
+          });
+        }
+
+        function formatMoney(value) {
+          try {
+            return 'R$ ' + Number(value).toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            });
+          } catch (error) {
+            return 'R$ ' + String(value);
+          }
+        }
+
+        var raw = JSON.parse(dataNode.textContent || '{}');
+        var values = toNumbers(raw.values);
+        var total = values.reduce(function (acc, value) { return acc + value; }, 0);
+
+        new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: raw.labels || [],
+            datasets: [{
+              data: values,
+              backgroundColor: ['#22d3ee', '#6366f1', '#10b981'],
+              borderColor: '#020617',
+              borderWidth: 2,
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                borderColor: '#1e293b',
+                borderWidth: 1,
+                titleColor: '#e2e8f0',
+                bodyColor: '#cbd5e1',
+                callbacks: {
+                  label: function (context) {
+                    var percent = total > 0 ? Math.round((context.parsed / total) * 100) : 0;
+                    return ' ' + formatMoney(context.parsed) + ' (' + percent + '%)';
+                  }
+                }
+              }
+            }
+          }
+        });
+      })();
+    </script>
+  {% endif %}
 {% endblock %}
