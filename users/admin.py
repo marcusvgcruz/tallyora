@@ -18,35 +18,50 @@ class CustomUserAdmin(UserAdmin):
     ordering = ('email',)
 
     fieldsets = (
-        (None, {
-            'fields': ('email', 'password'),
-        }),
-        ('Informações pessoais', {
-            'fields': ('first_name', 'last_name'),
-        }),
-        ('Permissões', {
-            'fields': (
-                'is_active',
-                'is_staff',
-                'is_superuser',
-                'groups',
-                'user_permissions',
-            ),
-        }),
-        ('Datas importantes', {
-            'fields': ('last_login', 'date_joined'),
-        }),
+        (
+            None,
+            {
+                'fields': ('email', 'password'),
+            },
+        ),
+        (
+            'Informações pessoais',
+            {
+                'fields': ('first_name', 'last_name'),
+            },
+        ),
+        (
+            'Permissões',
+            {
+                'fields': (
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                    'groups',
+                    'user_permissions',
+                ),
+            },
+        ),
+        (
+            'Datas importantes',
+            {
+                'fields': ('last_login', 'date_joined'),
+            },
+        ),
     )
 
     add_fieldsets = (
-        (None, {
-            'classes': ('wide',),
-            'fields': (
-                'email',
-                'first_name',
-                'last_name',
-                'password1',
-                'password2',
-            ),
-        }),
+        (
+            None,
+            {
+                'classes': ('wide',),
+                'fields': (
+                    'email',
+                    'first_name',
+                    'last_name',
+                    'password1',
+                    'password2',
+                ),
+            },
+        ),
     )

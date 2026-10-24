@@ -1,0 +1,54 @@
+# Tallyora — stack local: Django + PostgreSQL 16
+#   cp .env.example .env
+#   docker compose up --build
+#   http://localhost:8080/
+#
+# A porta 5432 do host NÃO é publicada (já há PostgreSQL na VPS).
+# O acesso do Django ao banco é pela rede interna do compose (db:5432).
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-tallyora}
+      POSTGRES_USER: ${DB_USER:-tallyora}
+      # Sem valor no .env, usa o default local (nunca vá para produção).
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tallyora_dev}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${DB_USER:-tallyora} -d ${DB_NAME:-tallyora}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  web:
+    build: .
+    env_file:
+      - .env
+    environment:
+      # O .env é de uso local (APP_ENV=dev); aqui o banco é o Postgres.
+      APP_ENV: prd
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-tallyora}
+      DB_USER: ${DB_USER:-tallyora}
+      DB_PASSWORD: ${DB_PASSWORD:-tallyora_dev}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      # 8080 no host -> 8000 no container. Na VPS a 8080 pode estar
+      # ocupada (evolution_api): rode WEB_PORT=8081 docker compose up.
+      - "${WEB_PORT:-8080}:8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

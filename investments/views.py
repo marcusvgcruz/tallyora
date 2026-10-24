@@ -79,39 +79,41 @@ class PortfolioDashboardView(LoginRequiredMixin, TemplateView):
             if asset.last_quote_update is not None
         ]
 
-        context.update({
-            'assets': assets,
-            'assets_by_class': assets_by_class,
-            'class_summary': class_summary,
-            'total_value': total_value,
-            'total_invested': total_invested,
-            'profit_loss_amount': profit_loss,
-            'profit_loss_percentage': profit_loss_percentage,
-            'chart_data': {
-                'labels': [row['label'] for row in class_summary],
-                'current': [
-                    float(row['current_percentage'])
-                    for row in class_summary
-                ],
-                'target': [
-                    float(row['target_percentage'])
-                    for row in class_summary
-                ],
-            },
-            'allocation_targets': _user_targets(self.request.user),
-            'allocation_formset': AllocationTargetFormSet(
-                queryset=_user_targets(self.request.user),
-                prefix=FORMSET_PREFIX,
-                user=self.request.user,
-            ),
-            'allocation_total': allocation_total,
-            'allocation_missing': max(
-                to_money(ONE_HUNDRED - allocation_total),
-                ZERO,
-            ),
-            'last_quote_update': max(quotes) if quotes else None,
-            'title': 'Carteira de Investimentos',
-        })
+        context.update(
+            {
+                'assets': assets,
+                'assets_by_class': assets_by_class,
+                'class_summary': class_summary,
+                'total_value': total_value,
+                'total_invested': total_invested,
+                'profit_loss_amount': profit_loss,
+                'profit_loss_percentage': profit_loss_percentage,
+                'chart_data': {
+                    'labels': [row['label'] for row in class_summary],
+                    'current': [
+                        float(row['current_percentage'])
+                        for row in class_summary
+                    ],
+                    'target': [
+                        float(row['target_percentage'])
+                        for row in class_summary
+                    ],
+                },
+                'allocation_targets': _user_targets(self.request.user),
+                'allocation_formset': AllocationTargetFormSet(
+                    queryset=_user_targets(self.request.user),
+                    prefix=FORMSET_PREFIX,
+                    user=self.request.user,
+                ),
+                'allocation_total': allocation_total,
+                'allocation_missing': max(
+                    to_money(ONE_HUNDRED - allocation_total),
+                    ZERO,
+                ),
+                'last_quote_update': max(quotes) if quotes else None,
+                'title': 'Carteira de Investimentos',
+            }
+        )
         return context
 
     @staticmethod
@@ -130,21 +132,23 @@ class PortfolioDashboardView(LoginRequiredMixin, TemplateView):
                 )
             )
             current_percentage = _percentage(current_value, total_value)
-            summary.append({
-                'asset_class': value,
-                'label': label,
-                'current_value': current_value,
-                'current_percentage': current_percentage,
-                'target_percentage': target_percentage,
-                'diff_percentage': to_money(
-                    current_percentage - target_percentage
-                ),
-                'badge': (
-                    BADGE_BUY
-                    if current_percentage < target_percentage
-                    else BADGE_WAIT
-                ),
-            })
+            summary.append(
+                {
+                    'asset_class': value,
+                    'label': label,
+                    'current_value': current_value,
+                    'current_percentage': current_percentage,
+                    'target_percentage': target_percentage,
+                    'diff_percentage': to_money(
+                        current_percentage - target_percentage
+                    ),
+                    'badge': (
+                        BADGE_BUY
+                        if current_percentage < target_percentage
+                        else BADGE_WAIT
+                    ),
+                }
+            )
         return summary
 
 
@@ -302,10 +306,12 @@ class AllocationTargetUpdateView(LoginRequiredMixin, View):
                 continue
             if not data.get('asset_class'):
                 continue
-            rows.append({
-                'asset_class': data['asset_class'],
-                'target_percentage': data.get('target_percentage'),
-            })
+            rows.append(
+                {
+                    'asset_class': data['asset_class'],
+                    'target_percentage': data.get('target_percentage'),
+                }
+            )
         return rows
 
     @staticmethod

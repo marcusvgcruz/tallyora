@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+target-version = ['py312']
+extend-exclude = '''
+/(
+    \.git
+  | venv
+  | node_modules
+  | migrations
+)/
+'''

@@ -67,12 +67,14 @@ class AssetAllocationTarget(BaseModel):
         ]
         total = to_money((current or ZERO) + self.target_percentage)
         if total > ONE_HUNDRED:
-            raise ValidationError({
-                'target_percentage': (
-                    'A soma das metas por classe não pode passar de 100% '
-                    f'(com esta ficaria {total}%).'
-                ),
-            })
+            raise ValidationError(
+                {
+                    'target_percentage': (
+                        'A soma das metas por classe não pode passar de 100% '
+                        f'(com esta ficaria {total}%).'
+                    ),
+                }
+            )
 
     @classmethod
     def total_percentage(cls, user):

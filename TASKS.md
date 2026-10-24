@@ -94,17 +94,17 @@
 
 ---
 
-### Sprint 6: Testes Automatizados, Refinamento PEP8 e Dockerização (Sprint Final)
-- [ ] **6.1. Padronização PEP8 e Revisão de Código**
-  - [ ] **6.1.1.** Instalar e executar `flake8` / `black --skip-string-normalization` (ou configurar para forçar aspas simples `'`) garantindo 100% de aderência à PEP8 e uso de aspas simples em todos os arquivos `.py`.
-  - [ ] **6.1.2.** Revisar todos os templates HTML garantindo que 100% dos textos visíveis, mensagens de formulário e estados vazios estejam em Português Brasileiro (`pt-BR`).
-- [ ] **6.2. Testes Automatizados (`tests.py` de cada app)**
-  - [ ] **6.2.1.** Implementar testes unitários em `users/tests.py` e `profiles/tests.py` validando login por e-mail, criação automática de perfil via signal e cálculo de descontos CLT.
-  - [ ] **6.2.2.** Implementar testes unitários em `transactions/tests.py` validando a regra de não-duplicidade de despesas marcadas com `is_on_credit_card=True` e o cálculo de caixinhas por `%` e por `R$` fixo.
-  - [ ] **6.2.3.** Implementar testes em `goals_events/tests.py` e `investments/tests.py` validando o cálculo de saldo pendente de fornecedores de eventos e o cálculo de rentabilidade da carteira.
-- [ ] **6.3. Dockerização da Aplicação**
-  - [ ] **6.3.1.** Criar `Dockerfile` enxuto baseado em `python:3.12-slim` configurando variáveis de ambiente, instalação de dependências e comando de inicialização.
-  - [ ] **6.3.2.** Criar `docker-compose.yml` orquestrando os containers `web` (Django) e `db` (PostgreSQL 16) com volume persistente e `healthcheck`.
-  - [ ] **6.3.3.** Documentar o passo a passo de execução local (com e sem Docker) no arquivo `README.md`.
+### Sprint 6: Testes Automatizados, Refinamento PEP8 e Dockerização (Sprint Final) — [x] CONCLUÍDA
+- [X] **6.1. Padronização PEP8 e Revisão de Código**
+  - [X] **6.1.1.** Instalar e executar `flake8` / `black --skip-string-normalization` (ou configurar para forçar aspas simples `'`) garantindo 100% de aderência à PEP8 e uso de aspas simples em todos os arquivos `.py`.
+  - [X] **6.1.2.** Revisar todos os templates HTML garantindo que 100% dos textos visíveis, mensagens de formulário e estados vazios estejam em Português Brasileiro (`pt-BR`).
+- [X] **6.2. Testes Automatizados (`tests.py` de cada app)**
+  - [X] **6.2.1.** Implementar testes unitários em `users/tests.py` e `profiles/tests.py` validando login por e-mail, criação automática de perfil via signal e cálculo de descontos CLT.
+  - [X] **6.2.2.** Implementar testes unitários em `transactions/tests.py` validando a regra de não-duplicidade de despesas marcadas com `is_on_credit_card=True` e o cálculo de caixinhas por `%` e por `R$` fixo.
+  - [X] **6.2.3.** Implementar testes em `goals_events/tests.py` e `investments/tests.py` validando o cálculo de saldo pendente de fornecedores de eventos e o cálculo de rentabilidade da carteira.
+- [X] **6.3. Dockerização da Aplicação**
+  - [X] **6.3.1.** Criar `Dockerfile` enxuto baseado em `python:3.12-slim` configurando variáveis de ambiente, instalação de dependências e comando de inicialização.
+  - [X] **6.3.2.** Criar `docker-compose.yml` orquestrando os containers `web` (Django) e `db` (PostgreSQL 16) com volume persistente e `healthcheck`.
+  - [X] **6.3.3.** Documentar o passo a passo de execução local (com e sem Docker) no arquivo `README.md`.
 
   ---

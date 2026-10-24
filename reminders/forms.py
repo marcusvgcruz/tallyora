@@ -26,11 +26,13 @@ class DailyReminderForm(forms.ModelForm):
             'title': 'Ex.: tomar remédio, pagar a conta de luz.',
         }
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Tomar remédio, pagar a conta...',
-                'maxlength': '160',
-            }),
+            'title': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Tomar remédio, pagar a conta...',
+                    'maxlength': '160',
+                }
+            ),
             'scheduled_time': forms.TimeInput(
                 attrs={'class': INPUT_CLASSES, 'type': 'time'},
                 format='%H:%M',
@@ -80,4 +82,3 @@ class DailyReminderForm(forms.ModelForm):
         if duplicated.exists():
             raise forms.ValidationError(DUPLICATED_REMINDER)
         return cleaned_data
-

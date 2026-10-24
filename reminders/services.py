@@ -14,9 +14,7 @@ from django.utils import timezone
 from .models import DailyReminder
 
 TOKEN_URL = 'https://oauth2.googleapis.com/token'
-EVENTS_URL = (
-    'https://www.googleapis.com/calendar/v3/calendars/primary/events'
-)
+EVENTS_URL = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
 CLIENT_ID_ENV = 'GOOGLE_CLIENT_ID'
 CLIENT_SECRET_ENV = 'GOOGLE_CLIENT_SECRET'
 REFRESH_TOKEN_ENV = 'GOOGLE_REFRESH_TOKEN'
@@ -197,13 +195,15 @@ class GoogleCalendarSyncService:
     def _events_request(self):
         """Build the authenticated request for today's events."""
         _, start, end = self._day_bounds()
-        query = urllib.parse.urlencode({
-            'timeMin': start.isoformat(),
-            'timeMax': end.isoformat(),
-            'singleEvents': 'true',
-            'orderBy': 'startTime',
-            'timeZone': settings.TIME_ZONE,
-        })
+        query = urllib.parse.urlencode(
+            {
+                'timeMin': start.isoformat(),
+                'timeMax': end.isoformat(),
+                'singleEvents': 'true',
+                'orderBy': 'startTime',
+                'timeZone': settings.TIME_ZONE,
+            }
+        )
         return urllib.request.Request(
             f'{EVENTS_URL}?{query}',
             headers={
@@ -216,12 +216,14 @@ class GoogleCalendarSyncService:
         """Return the cached access token, asking Google once per run."""
         if self._cached_token:
             return self._cached_token
-        body = urllib.parse.urlencode({
-            'grant_type': 'refresh_token',
-            'client_id': self._env(CLIENT_ID_ENV),
-            'client_secret': self._env(CLIENT_SECRET_ENV),
-            'refresh_token': self._env(REFRESH_TOKEN_ENV),
-        }).encode('utf-8')
+        body = urllib.parse.urlencode(
+            {
+                'grant_type': 'refresh_token',
+                'client_id': self._env(CLIENT_ID_ENV),
+                'client_secret': self._env(CLIENT_SECRET_ENV),
+                'refresh_token': self._env(REFRESH_TOKEN_ENV),
+            }
+        ).encode('utf-8')
         request = urllib.request.Request(
             TOKEN_URL,
             data=body,
@@ -274,7 +276,9 @@ class GoogleCalendarSyncService:
         current = timezone.get_current_timezone()
         start = datetime.combine(today, time.min, tzinfo=current)
         end = datetime.combine(
-            today + timedelta(days=1), time.min, tzinfo=current,
+            today + timedelta(days=1),
+            time.min,
+            tzinfo=current,
         )
         return today, start, end
 

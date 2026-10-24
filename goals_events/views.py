@@ -41,9 +41,7 @@ class GoalBoxListView(LoginRequiredMixin, ListView):
         context['total_balance'] = to_money(
             aggregates['total_balance'] or ZERO
         )
-        context['total_target'] = to_money(
-            aggregates['total_target'] or ZERO
-        )
+        context['total_target'] = to_money(aggregates['total_target'] or ZERO)
         context['title'] = 'Caixinhas'
         return context
 

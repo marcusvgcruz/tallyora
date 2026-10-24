@@ -21,16 +21,20 @@ class CategoryForm(forms.ModelForm):
             'color_hex': 'Cor (hexadecimal)',
         }
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Moradia, Alimentação...',
-            }),
+            'name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Moradia, Alimentação...',
+                }
+            ),
             'category_type': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'color_hex': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': '#10b981',
-                'maxlength': '7',
-            }),
+            'color_hex': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': '#10b981',
+                    'maxlength': '7',
+                }
+            ),
         }
 
     def clean(self):

@@ -54,10 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'tailwind',
     'theme',
-
     'accounts',
     'categories',
     'goals_events',
@@ -133,8 +131,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': (
-            'django.contrib.auth.password_validation.'
-            'MinimumLengthValidator'
+            'django.contrib.auth.password_validation.' 'MinimumLengthValidator'
         ),
     },
     {
@@ -174,6 +171,12 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = []
 if (BASE_DIR / 'static').is_dir():
     STATICFILES_DIRS.append(BASE_DIR / 'static')
+
+# Destination of ``collectstatic`` (used by the container/production).
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Project translations on top of the Django catalogue.
+LOCALE_PATHS = [BASE_DIR / 'locale']
 
 
 # Default primary key field type

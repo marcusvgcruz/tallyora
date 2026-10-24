@@ -47,41 +47,53 @@ class InvestmentAssetForm(forms.ModelForm):
         }
         widgets = {
             'asset_class': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'ticker': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'HGLG11',
-                'autocomplete': 'off',
-                'style': 'text-transform: uppercase',
-            }),
-            'name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Fundo imobiliário, ação, CDB...',
-            }),
-            'quantity': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.00000001',
-                'min': '0',
-                'placeholder': '0',
-            }),
-            'average_price': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.0001',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'current_price': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.0001',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'target_percentage_in_class': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'max': '100',
-                'placeholder': '0,00',
-            }),
+            'ticker': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'HGLG11',
+                    'autocomplete': 'off',
+                    'style': 'text-transform: uppercase',
+                }
+            ),
+            'name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Fundo imobiliário, ação, CDB...',
+                }
+            ),
+            'quantity': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.00000001',
+                    'min': '0',
+                    'placeholder': '0',
+                }
+            ),
+            'average_price': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.0001',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'current_price': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.0001',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'target_percentage_in_class': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'max': '100',
+                    'placeholder': '0,00',
+                }
+            ),
         }
 
     def __init__(self, *args, user=None, **kwargs):
@@ -129,13 +141,15 @@ class AllocationTargetForm(forms.ModelForm):
         fields = ('asset_class', 'target_percentage')
         widgets = {
             'asset_class': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'target_percentage': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'max': '100',
-                'placeholder': '0,00',
-            }),
+            'target_percentage': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'max': '100',
+                    'placeholder': '0,00',
+                }
+            ),
         }
 
     def _post_clean(self):

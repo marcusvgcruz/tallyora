@@ -4,6 +4,19 @@ Padrões obrigatórios para qualquer código escrito no Tallyora. Vêm dos requi
 
 ## 1. PEP8 e formatação
 
+Ferramentas e configuração versionadas (`setup.cfg` + `pyproject.toml`):
+
+```bash
+./venv/bin/black .      # formata (linha 79, preserva aspas simples)
+./venv/bin/flake8 .     # valida (0 avisos é o padrão de entrega: hoje 0)
+```
+
+- `black --skip-string-normalization` para **não** trocar as aspas simples por duplas;
+  `flake8` com `max-line-length = 79` e `max-complexity = 10`.
+- `*/migrations/*` fica fora das duas ferramentas: migração gerada não se reformata à mão.
+- Traduções: `locale/pt_BR/LC_MESSAGES/django.po` + `manage.py compilemessages` para o que
+  o catálogo pt-BR do Django não cobre (o `.mo` é versionado).
+
 - Todo `.py` adere à **PEP8**: 4 espaços de indentação, linhas até 79 caracteres, imports agrupados (stdlib, terceiros, Django/projeto) e duas linhas em branco entre definições de topo.
 - **Aspas simples (`'`) por padrão** em strings Python (RNF02).
 - Verificação planejada com `flake8` e `black --skip-string-normalization` (tarefa 6.1.1).

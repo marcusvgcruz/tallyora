@@ -1,0 +1,25 @@
+# Traduções do projeto sobre o catálogo pt-BR do Django.
+#
+# Só entra aqui o que o Django não traduz sozinho. Hoje é apenas o rótulo
+# vazio dos ModelChoiceField ("- Selecione uma opção -"), que o catálogo
+# do Django não cobre em pt-BR.
+#
+# Depois de editar: `python manage.py compilemessages`
+# (o .mo compilado é versionado junto com o .po).
+msgid ""
+msgstr ""
+"Project-Id-Version: Tallyora\n"
+"Report-Msgid-Bugs-To: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# Rótulo padrão de campo de seleção vazio (django.db.models).
+msgid "- Select an option -"
+msgstr "- Selecione uma opção -"
+
+# Rótulo padrão de campo de seleção vazio em formulários de admin.
+msgid "Select an option"
+msgstr "Selecione uma opção"

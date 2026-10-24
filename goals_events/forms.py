@@ -48,33 +48,43 @@ class GoalBoxForm(forms.ModelForm):
             ),
         }
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Reserva de emergência, viagem...',
-            }),
-            'storage_location': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Cofrinho Nubank',
-            }),
+            'name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Reserva de emergência, viagem...',
+                }
+            ),
+            'storage_location': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Cofrinho Nubank',
+                }
+            ),
             'allocation_type': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'allocation_value': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'current_balance': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'target_amount': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
+            'allocation_value': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'current_balance': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'target_amount': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
         }
 
     def clean_allocation_value(self):
@@ -132,29 +142,35 @@ class EventPlanForm(forms.ModelForm):
             ),
         }
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Casamento, viagem, reforma...',
-            }),
+            'title': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Casamento, viagem, reforma...',
+                }
+            ),
             'event_date': forms.DateInput(
                 attrs={'class': INPUT_CLASSES, 'type': 'date'},
                 format='%Y-%m-%d',
             ),
-            'already_saved_amount': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
+            'already_saved_amount': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
             'monthly_contribution_type': forms.Select(
                 attrs={'class': INPUT_CLASSES}
             ),
-            'monthly_contribution_value': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
+            'monthly_contribution_value': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
             'linked_goal_box': forms.Select(attrs={'class': INPUT_CLASSES}),
             'is_active': forms.CheckboxInput(
                 attrs={'class': CHECKBOX_CLASSES}
@@ -189,9 +205,7 @@ class EventPlanForm(forms.ModelForm):
             and contribution_value is not None
             and contribution_value > 100
         ):
-            self.add_error(
-                'monthly_contribution_value', PERCENTAGE_LIMIT
-            )
+            self.add_error('monthly_contribution_value', PERCENTAGE_LIMIT)
         return cleaned_data
 
 
@@ -218,31 +232,41 @@ class EventExpenseItemForm(forms.ModelForm):
             'category_name': 'Ex.: buffet, fotografia, decoração.',
         }
         widgets = {
-            'supplier_name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Buffet Alegria',
-            }),
-            'category_name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Buffet',
-            }),
-            'total_cost': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'amount_paid': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': INPUT_CLASSES,
-                'rows': 3,
-                'placeholder': 'Forma de pagamento, parcelas...',
-            }),
+            'supplier_name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Buffet Alegria',
+                }
+            ),
+            'category_name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Buffet',
+                }
+            ),
+            'total_cost': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'amount_paid': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'notes': forms.Textarea(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'rows': 3,
+                    'placeholder': 'Forma de pagamento, parcelas...',
+                }
+            ),
         }
 
     def clean_amount_paid(self):

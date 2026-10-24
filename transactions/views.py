@@ -38,10 +38,14 @@ class TransactionListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         period = self.period
-        return super().get_queryset().filter(
-            user=self.request.user,
-            reference_date__gte=period.start_date,
-            reference_date__lte=period.end_date,
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                user=self.request.user,
+                reference_date__gte=period.start_date,
+                reference_date__lte=period.end_date,
+            )
         )
 
     def get_totals(self, queryset):
@@ -162,9 +166,9 @@ class RecurringExpenseListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        total = context['recurring_expenses'].aggregate(
-            total=Sum('amount')
-        )['total']
+        total = context['recurring_expenses'].aggregate(total=Sum('amount'))[
+            'total'
+        ]
         context['total'] = to_money(total or ZERO)
         context['title'] = 'Despesas fixas'
         return context

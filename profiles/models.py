@@ -99,7 +99,9 @@ class UserProfile(BaseModel):
             return ZERO
         total = self.user.payroll_deductions.filter(
             is_active=True,
-        ).aggregate(total=models.Sum('amount'))['total']
+        ).aggregate(
+            total=models.Sum('amount')
+        )['total']
         return total or ZERO
 
     @property

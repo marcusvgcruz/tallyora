@@ -93,6 +93,17 @@ Valores presentes hoje no arquivo:
 - `MAILERS`: backend de e-mail no console (permite testar recuperação de senha sem SMTP).
 - `DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'`.
 
+## Infraestrutura do repositório
+
+| Arquivo | Papel |
+| :--- | :--- |
+| `Dockerfile` | imagem `python:3.12-slim`, usuário não-root, `runserver` na 8000 |
+| `docker-compose.yml` | `web` + `db` (Postgres 16), volume `pgdata`, healthcheck, `WEB_PORT` |
+| `.dockerignore` | deixa fora `venv/`, `.env`, `db.sqlite3`, `.git/`, `node_modules/` |
+| `setup.cfg` / `pyproject.toml` | configuração do `flake8` e do `black` |
+| `locale/pt_BR/` | traduções do projeto por cima do catálogo do Django |
+| `staticfiles/` | destino do `collectstatic` (não versionado) |
+
 ## Nota: por que os templates ficam todos em `templates/`
 
 A convenção mais citada do Django é `app/templates/app/arquivo.html` (app dirs). Aqui os

@@ -28,21 +28,27 @@ class UserRegistrationForm(UserCreationForm):
             'email': 'E-mail',
         }
         widgets = {
-            'first_name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'autocomplete': 'given-name',
-                'placeholder': 'Seu nome',
-            }),
-            'last_name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'autocomplete': 'family-name',
-                'placeholder': 'Seu sobrenome',
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': INPUT_CLASSES,
-                'autocomplete': 'email',
-                'placeholder': 'voce@exemplo.com',
-            }),
+            'first_name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'autocomplete': 'given-name',
+                    'placeholder': 'Seu nome',
+                }
+            ),
+            'last_name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'autocomplete': 'family-name',
+                    'placeholder': 'Seu sobrenome',
+                }
+            ),
+            'email': forms.EmailInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'autocomplete': 'email',
+                    'placeholder': 'voce@exemplo.com',
+                }
+            ),
         }
         error_messages = {
             'email': {
@@ -69,11 +75,13 @@ class EmailAuthenticationForm(AuthenticationForm):
 
     username = forms.EmailField(
         label='E-mail',
-        widget=forms.EmailInput(attrs={
-            'class': INPUT_CLASSES,
-            'autocomplete': 'email',
-            'placeholder': 'voce@exemplo.com',
-        }),
+        widget=forms.EmailInput(
+            attrs={
+                'class': INPUT_CLASSES,
+                'autocomplete': 'email',
+                'placeholder': 'voce@exemplo.com',
+            }
+        ),
     )
 
     error_messages = {

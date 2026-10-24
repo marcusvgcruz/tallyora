@@ -72,49 +72,53 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             + summary['event_contributions']
         )
 
-        context.update({
-            'title': f'Dashboard — {period.label}',
-            'period': period,
-            'period_choices': PERIOD_CHOICES,
-            'month_names': MONTH_NAMES,
-            'years': list(
-                range(period.year - YEAR_RANGE, period.year + YEAR_RANGE + 1)
-            ),
-            'filters': {
-                'month': period.month,
-                'year': period.year,
-                'period': period.kind,
-            },
-            'summary': summary,
-            'net_income': summary['net_income'],
-            'cash_expenses': summary['cash_expenses'],
-            'credit_card_bill': summary['credit_card_bill'],
-            'investment_allocation': summary['investment_allocation'],
-            'goal_box_contributions': summary['goal_box_contributions'],
-            'event_contributions': summary['event_contributions'],
-            'free_balance': summary['free_balance'],
-            'total_committed': committed,
-            'chart_data': self._chart_data(summary, committed),
-            'goal_boxes': goal_boxes,
-            'total_box_balance': to_money(
-                sum((box.current_balance for box in goal_boxes), ZERO)
-            ),
-            'active_events': active_events,
-            'total_event_paid': to_money(
-                sum((event.total_paid for event in active_events), ZERO)
-            ),
-            'total_event_cost': to_money(
-                sum((event.total_cost for event in active_events), ZERO)
-            ),
-            'assets': assets,
-            'portfolio_value': to_money(
-                sum((asset.current_total_value for asset in assets), ZERO)
-            ),
-            'reminders_today': reminders_today,
-            'reminders_count': len(reminders_today),
-            'external_events': external_events,
-            'calendar_configured': calendar_configured,
-        })
+        context.update(
+            {
+                'title': f'Dashboard — {period.label}',
+                'period': period,
+                'period_choices': PERIOD_CHOICES,
+                'month_names': MONTH_NAMES,
+                'years': list(
+                    range(
+                        period.year - YEAR_RANGE, period.year + YEAR_RANGE + 1
+                    )
+                ),
+                'filters': {
+                    'month': period.month,
+                    'year': period.year,
+                    'period': period.kind,
+                },
+                'summary': summary,
+                'net_income': summary['net_income'],
+                'cash_expenses': summary['cash_expenses'],
+                'credit_card_bill': summary['credit_card_bill'],
+                'investment_allocation': summary['investment_allocation'],
+                'goal_box_contributions': summary['goal_box_contributions'],
+                'event_contributions': summary['event_contributions'],
+                'free_balance': summary['free_balance'],
+                'total_committed': committed,
+                'chart_data': self._chart_data(summary, committed),
+                'goal_boxes': goal_boxes,
+                'total_box_balance': to_money(
+                    sum((box.current_balance for box in goal_boxes), ZERO)
+                ),
+                'active_events': active_events,
+                'total_event_paid': to_money(
+                    sum((event.total_paid for event in active_events), ZERO)
+                ),
+                'total_event_cost': to_money(
+                    sum((event.total_cost for event in active_events), ZERO)
+                ),
+                'assets': assets,
+                'portfolio_value': to_money(
+                    sum((asset.current_total_value for asset in assets), ZERO)
+                ),
+                'reminders_today': reminders_today,
+                'reminders_count': len(reminders_today),
+                'external_events': external_events,
+                'calendar_configured': calendar_configured,
+            }
+        )
         return context
 
     @staticmethod

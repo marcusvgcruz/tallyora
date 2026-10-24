@@ -62,7 +62,7 @@
             <input type="email" name="email" id="{{ form.email.id_for_label }}"
                    value="{{ form.email.value|default:'' }}"
                    autocomplete="email" inputmode="email" tabindex="3" required
-                   placeholder="voce@exemplo.com.br"
+                   placeholder="seuemail@exemplo.com.br"
                    class="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 transition-all focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
                    {% if form.email.errors %}aria-invalid="true" aria-describedby="erro-email"{% endif %}>
             {% if form.email.errors %}

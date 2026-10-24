@@ -198,7 +198,29 @@ Pede **e-mail** (não username), porque `USERNAME_FIELD = 'email'`.
 
 ## Execução com Docker
 
-Planejada para a Sprint 6 (tarefas 6.3.1–6.3.3): `Dockerfile` em `python:3.12-slim` e `docker-compose.yml` com os serviços `web` (Django) e `db` (PostgreSQL 16). **Ainda não existe nada disso no projeto.**
+`Dockerfile` (`python:3.12-slim`, usuário não-root, `HEALTHCHECK` em `/login/`) e
+`docker-compose.yml` com `web` + `db` (`postgres:16-alpine`, volume nomeado `pgdata`,
+`healthcheck` com `pg_isready` e `depends_on: service_healthy`).
+
+```bash
+cp .env.example .env      # preencha SECRET_KEY
+docker compose up --build # http://localhost:8080/
+docker compose down       # derruba (mantém os dados)
+docker compose down -v    # derruba e apaga o volume do banco
+```
+
+- O `web` roda `migrate --noinput` antes de subir o servidor; as 27 migrações aplicam
+  sozinhas no primeiro `up`.
+- **A porta 5432 não é publicada** — o banco só existe na rede interna do Compose, para
+  não conflitar com um PostgreSQL instalado na máquina.
+- A porta do host é configurável: `WEB_PORT=8081 docker compose up -d` (o default é 8080;
+  na VPS a 8080 já é do `evolution_api`).
+- Sem `collectstatic` no build: o CSS do Tailwind é versionado em
+  `theme/static/css/dist/` e o `runserver` serve os estáticos. Para uso atrás de um servidor
+  de verdade, rode `python manage.py collectstatic` (destino: `staticfiles/`, não versionado).
+- O container usa `runserver` porque o `gunicorn` não está nas dependências do projeto —
+  trocar de servidor é decisão de deploy, não deste sprint.
+- Testes dentro do container: `docker compose exec web python manage.py test`.
 
 ## Versionamento
 

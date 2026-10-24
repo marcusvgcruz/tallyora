@@ -139,10 +139,12 @@ class QuoteUpdaterService:
             if asset.is_quoted:
                 quoted.append(asset)
             else:
-                result['skipped'].append({
-                    'ticker': asset.ticker,
-                    'reason': MANUAL_QUOTE_REASON,
-                })
+                result['skipped'].append(
+                    {
+                        'ticker': asset.ticker,
+                        'reason': MANUAL_QUOTE_REASON,
+                    }
+                )
         if not quoted:
             return result
 
@@ -150,23 +152,31 @@ class QuoteUpdaterService:
         for asset in quoted:
             price = prices.get(asset.ticker)
             if price is None:
-                result['failed'].append({
-                    'ticker': asset.ticker,
-                    'reason': self.errors.get(asset.ticker, NO_QUOTE_REASON),
-                })
+                result['failed'].append(
+                    {
+                        'ticker': asset.ticker,
+                        'reason': self.errors.get(
+                            asset.ticker, NO_QUOTE_REASON
+                        ),
+                    }
+                )
                 continue
             try:
                 self._store_quote(asset, price)
             except Exception as error:  # noqa: BLE001 - never leak out
-                result['failed'].append({
-                    'ticker': asset.ticker,
-                    'reason': f'erro ao salvar: {error}',
-                })
+                result['failed'].append(
+                    {
+                        'ticker': asset.ticker,
+                        'reason': f'erro ao salvar: {error}',
+                    }
+                )
                 continue
-            result['updated'].append({
-                'ticker': asset.ticker,
-                'price': asset.current_price,
-            })
+            result['updated'].append(
+                {
+                    'ticker': asset.ticker,
+                    'price': asset.current_price,
+                }
+            )
 
         result['source'] = '+'.join(sorted(self.sources_used))
         return result
@@ -192,7 +202,7 @@ class QuoteUpdaterService:
         if missing and brapi_token():
             still_missing = []
             for start in range(0, len(missing), BRAPI_BATCH_SIZE):
-                batch = missing[start:start + BRAPI_BATCH_SIZE]
+                batch = missing[start : start + BRAPI_BATCH_SIZE]
                 batch_prices = self._fetch_brapi(batch)
                 if batch_prices:
                     self.sources_used.add(SOURCE_BRAPI)
@@ -260,25 +270,41 @@ class QuoteUpdaterService:
         if not isinstance(results, list):
             self._mark_error(tickers, 'brapi: resposta sem resultados')
             return {}
+        prices = self._parse_brapi_results(results)
+        self._mark_missing(tickers, prices)
+        return prices
+
+    def _parse_brapi_results(self, results):
+        """Turn the brapi result list into a ``{ticker: price}`` map."""
         prices = {}
         for entry in results:
-            if not isinstance(entry, dict):
-                continue
-            symbol = str(entry.get('symbol') or '').strip().upper()
-            raw_price = entry.get('regularMarketPrice')
-            if not symbol or raw_price is None:
-                continue
-            try:
-                prices[symbol] = to_price(raw_price)
-            except QuoteError as error:
-                self.errors[symbol] = f'brapi: {error}'
+            symbol, price = self._read_brapi_entry(entry)
+            if symbol is not None:
+                prices[symbol] = price
+        return prices
+
+    def _read_brapi_entry(self, entry):
+        """Read one brapi entry and record a bad price in ``errors``."""
+        if not isinstance(entry, dict):
+            return None, None
+        symbol = str(entry.get('symbol') or '').strip().upper()
+        raw_price = entry.get('regularMarketPrice')
+        if not symbol or raw_price is None:
+            return None, None
+        try:
+            return symbol, to_price(raw_price)
+        except QuoteError as error:
+            self.errors[symbol] = f'brapi: {error}'
+            return None, None
+
+    def _mark_missing(self, tickers, prices):
+        """Record every brapi ticker that came back without a price."""
         for ticker in tickers:
             if ticker not in prices:
                 self.errors.setdefault(
                     ticker,
                     'brapi: ' + NO_QUOTE_REASON,
                 )
-        return prices
 
     def _fetch_yahoo(self, ticker):
         """Ask Yahoo Finance for the price of one B3 ticker."""

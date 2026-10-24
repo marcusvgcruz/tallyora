@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from core.models import ZERO, BaseModel, to_money
@@ -161,15 +161,16 @@ class EventPlan(BaseModel):
         """Keep the monthly percentage inside 0..100."""
         super().clean()
         if (
-            self.monthly_contribution_type
-            == self.ContributionType.PERCENTAGE
+            self.monthly_contribution_type == self.ContributionType.PERCENTAGE
             and self.monthly_contribution_value > ONE_HUNDRED
         ):
-            raise ValidationError({
-                'monthly_contribution_value': (
-                    'O percentual não pode passar de 100%.'
-                ),
-            })
+            raise ValidationError(
+                {
+                    'monthly_contribution_value': (
+                        'O percentual não pode passar de 100%.'
+                    ),
+                }
+            )
 
     def monthly_contribution(self, base_amount=ZERO):
         """Amount to set aside every month for this event."""
@@ -271,11 +272,13 @@ class EventExpenseItem(BaseModel):
         """Reject payments bigger than the supplier cost."""
         super().clean()
         if self.amount_paid > self.total_cost:
-            raise ValidationError({
-                'amount_paid': (
-                    'O valor pago não pode ser maior que o custo total.'
-                ),
-            })
+            raise ValidationError(
+                {
+                    'amount_paid': (
+                        'O valor pago não pode ser maior que o custo total.'
+                    ),
+                }
+            )
 
     def save(self, *args, **kwargs):
         """Keep ``payment_status`` coherent with the amounts."""

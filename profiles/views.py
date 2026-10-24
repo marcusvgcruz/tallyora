@@ -19,9 +19,7 @@ class ProfileConfigView(LoginRequiredMixin, UpdateView):
     success_url = PROFILE_URL
 
     def get_object(self, queryset=None):
-        profile, _ = UserProfile.objects.get_or_create(
-            user=self.request.user
-        )
+        profile, _ = UserProfile.objects.get_or_create(user=self.request.user)
         return profile
 
     def get_context_data(self, **kwargs):
@@ -57,7 +55,8 @@ class PayrollDeductionCreateView(LoginRequiredMixin, CreateView):
 
     def form_invalid(self, form):
         errors = ' '.join(
-            str(error) for error_list in form.errors.values()
+            str(error)
+            for error_list in form.errors.values()
             for error in error_list
         )
         messages.error(

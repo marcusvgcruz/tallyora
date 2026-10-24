@@ -1,0 +1,28 @@
+# Ambiente local
+venv/
+.venv/
+.env
+db.sqlite3
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Versionamento e editor
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Node / Tailwind CLI
+node_modules/
+theme/static_src/node_modules/
+
+# Mídia e estáticos gerados
+media/
+staticfiles/

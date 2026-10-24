@@ -16,8 +16,7 @@ CARD_CHECKBOX_CLASSES = (
     'text-emerald-500 focus:ring-emerald-500/50'
 )
 CARD_WRAPPER_CLASSES = (
-    'rounded-xl border border-emerald-500/40 bg-emerald-500/5 '
-    'px-4 py-3'
+    'rounded-xl border border-emerald-500/40 bg-emerald-500/5 ' 'px-4 py-3'
 )
 PERCENTAGE_LIMIT = 'O percentual não pode passar de 100%.'
 NEGATIVE_ALLOCATION = 'O valor da alocação não pode ser negativo.'
@@ -92,31 +91,39 @@ class RecurringExpenseForm(
             'is_active': 'Despesa ativa',
         }
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Aluguel, internet, academia...',
-            }),
-            'amount': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'due_day': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'min': '1',
-                'max': '31',
-                'placeholder': '5',
-            }),
+            'title': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Aluguel, internet, academia...',
+                }
+            ),
+            'amount': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'due_day': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'min': '1',
+                    'max': '31',
+                    'placeholder': '5',
+                }
+            ),
             'billing_cycle': forms.Select(attrs={'class': INPUT_CLASSES}),
             'category': forms.Select(attrs={'class': INPUT_CLASSES}),
             'account': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': (
-                    'w-4 h-4 rounded border-slate-700 bg-slate-900 '
-                    'text-emerald-500 focus:ring-emerald-500/50'
-                ),
-            }),
+            'is_active': forms.CheckboxInput(
+                attrs={
+                    'class': (
+                        'w-4 h-4 rounded border-slate-700 bg-slate-900 '
+                        'text-emerald-500 focus:ring-emerald-500/50'
+                    ),
+                }
+            ),
         }
 
 
@@ -149,29 +156,33 @@ class TransactionForm(
             'is_paid': 'Já foi pago',
         }
         widgets = {
-            'title': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Mercado, salário, fatura...',
-            }),
-            'amount': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'transaction_type': forms.Select(
-                attrs={'class': INPUT_CLASSES}
+            'title': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Mercado, salário, fatura...',
+                }
             ),
+            'amount': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'transaction_type': forms.Select(attrs={'class': INPUT_CLASSES}),
             'reference_date': forms.DateInput(
                 attrs={'class': INPUT_CLASSES, 'type': 'date'},
                 format='%Y-%m-%d',
             ),
             'category': forms.Select(attrs={'class': INPUT_CLASSES}),
             'account': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'is_paid': forms.CheckboxInput(attrs={
-                'class': (
-                    'w-4 h-4 rounded border-slate-700 bg-slate-900 '
-                    'text-emerald-500 focus:ring-emerald-500/50'
-                ),
-            }),
+            'is_paid': forms.CheckboxInput(
+                attrs={
+                    'class': (
+                        'w-4 h-4 rounded border-slate-700 bg-slate-900 '
+                        'text-emerald-500 focus:ring-emerald-500/50'
+                    ),
+                }
+            ),
         }

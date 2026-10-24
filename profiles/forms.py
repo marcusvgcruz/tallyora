@@ -32,37 +32,43 @@ class UserProfileForm(forms.ModelForm):
         }
         widgets = {
             'work_regime': forms.Select(attrs={'class': INPUT_CLASSES}),
-            'payment_frequency': forms.Select(
-                attrs={'class': INPUT_CLASSES}
+            'payment_frequency': forms.Select(attrs={'class': INPUT_CLASSES}),
+            'base_gross_income': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
             ),
-            'base_gross_income': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'advance_percentage': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'max': '100',
-                'placeholder': '40.00',
-            }),
-            'has_investments': forms.CheckboxInput(attrs={
-                'class': (
-                    'w-4 h-4 rounded border-slate-700 bg-slate-900 '
-                    'text-emerald-500 focus:ring-emerald-500/50'
-                ),
-            }),
+            'advance_percentage': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'max': '100',
+                    'placeholder': '40.00',
+                }
+            ),
+            'has_investments': forms.CheckboxInput(
+                attrs={
+                    'class': (
+                        'w-4 h-4 rounded border-slate-700 bg-slate-900 '
+                        'text-emerald-500 focus:ring-emerald-500/50'
+                    ),
+                }
+            ),
             'investment_allocation_type': forms.Select(
                 attrs={'class': INPUT_CLASSES}
             ),
-            'investment_allocation_value': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
+            'investment_allocation_value': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
         }
 
     def clean_advance_percentage(self):
@@ -101,22 +107,28 @@ class PayrollDeductionForm(forms.ModelForm):
             'is_active': 'Desconto ativo',
         }
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'INSS, IRRF, consignado...',
-            }),
-            'amount': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'min': '0',
-                'placeholder': '0,00',
-            }),
-            'is_active': forms.CheckboxInput(attrs={
-                'class': (
-                    'w-4 h-4 rounded border-slate-700 bg-slate-900 '
-                    'text-emerald-500 focus:ring-emerald-500/50'
-                ),
-            }),
+            'name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'INSS, IRRF, consignado...',
+                }
+            ),
+            'amount': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'min': '0',
+                    'placeholder': '0,00',
+                }
+            ),
+            'is_active': forms.CheckboxInput(
+                attrs={
+                    'class': (
+                        'w-4 h-4 rounded border-slate-700 bg-slate-900 '
+                        'text-emerald-500 focus:ring-emerald-500/50'
+                    ),
+                }
+            ),
         }
 
     def clean_amount(self):

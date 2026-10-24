@@ -6,13 +6,13 @@ investimentos e o **Saldo Livre** (o que realmente sobra).
 
 Django 6.1 + PostgreSQL/SQLite + Tailwind (compilado localmente, sem CDN).
 
-## Rodar em 5 passos (modo `dev`, SQLite)
+## Rodar sem Docker (modo `dev`, SQLite)
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env      # edite SECRET_KEY
+cp .env.example .env      # edite SECRET_KEY e mantenha APP_ENV=dev
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -23,6 +23,58 @@ Abra `http://127.0.0.1:8000/`.
 O CSS já vem compilado e versionado. Só rode
 `python manage.py tailwind build` depois de mexer em template (a primeira vez
 em uma máquina nova, rode também `python manage.py tailwind install`).
+
+## Rodar com Docker (Django + PostgreSQL 16)
+
+Sobe o app com o banco real (`APP_ENV=prd`) em dois containers: `web` e `db`.
+
+```bash
+cp .env.example .env                    # edite SECRET_KEY; DB_* pode ficar como está
+docker compose up --build               # http://localhost:8080/
+```
+
+O que acontece no start:
+
+- O `db` espera o `pg_isready` ficar saudável (`healthcheck`) e só então o
+  `web` sobe (`depends_on: condition: service_healthy`).
+- O `web` roda `python manage.py migrate --noinput` antes de iniciar o
+  servidor — não é preciso migrar à mão.
+- O compose força `APP_ENV=prd`, `DB_HOST=db` e `DB_PORT=5432`; o resto
+  (`SECRET_KEY`, `ALLOWED_HOSTS`, `DB_*`) vem do `.env`. Sem `DB_PASSWORD` no
+  `.env`, o compose usa `tallyora_dev` nos dois lados.
+- Os dados do Postgres ficam no volume nomeado `tallyora_pgdata`.
+
+Comandos do dia a dia:
+
+```bash
+docker compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py test          # 124 testes, no Postgres
+docker compose exec web python manage.py check
+docker compose exec web python manage.py shell
+docker compose exec db psql -U tallyora -d tallyora     # console do banco
+docker compose logs -f web
+docker compose down            # para a stack, mantém os dados
+docker compose down -v         # para e APAGA o volume do Postgres
+```
+
+Ajustes:
+
+- **Porta 8080 ocupada?** O mapeamento padrão é `8080:8000`, mas a porta é
+  configurável: `WEB_PORT=8081 docker compose up -d` (na VPS a 8080 pertence
+  ao `evolution_api`).
+- A porta **5432 do host não é publicada** — de propósito, para não conflitar
+  com o PostgreSQL da VPS. O Django fala com o banco pela rede interna do
+  compose (`db:5432`).
+- O servidor na imagem é o `runserver` (`python manage.py runserver
+  0.0.0.0:8000`), porque **`gunicorn` não está no `requirements.txt`**. Para
+  produção de verdade, adicione `gunicorn` ao requirements e troque o `CMD`.
+- O build **não** roda `tailwind build` nem `collectstatic`: o CSS é
+  versionado em `theme/static/css/dist/styles.css` (o CLI do Tailwind baixa
+  binário da internet e quebraria o build offline) e o `collectstatic` exige
+  `STATIC_ROOT`, que ainda não está definido em `core/settings.py`.
+- Se `docker compose config` imprimir avisos `variable "bg"/"c" is not set`,
+  é o `$` da `SECRET_KEY` do `.env` sendo lido como interpolação. É inofensivo:
+  o container recebe a chave literal via `env_file`.
 
 ## Ambientes
 

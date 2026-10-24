@@ -2,7 +2,7 @@
 
 Retrato do que existe em disco hoje (24/10/2026), verificado no código e no banco. O backlog completo e atualizado está em `../TASKS.md`.
 
-**Sprints 1 a 5 concluídas.** A Sprint 5 fechou 5.1.1 a 5.1.3 (lembretes) e 5.2.1 a 5.2.2 (dashboard). Resta a Sprint 6 (testes automatizados, PEP8 e Docker).
+**Backlog concluído: Sprints 1 a 6 fechadas.** A Sprint 6 entregou PEP8 sem avisos (`flake8` 0), **124 testes automatizados** verdes em SQLite e em PostgreSQL, revisão de pt-BR nos 38 templates e a aplicação dockerizada (`web` + `db`). O `TASKS.md` não tem nenhum item em aberto.
 
 ## Implementado
 
@@ -45,7 +45,12 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 | `DailyReminder` (5.1.1) | lembrete com `scheduled_time`, `reminder_date` e `external_google_event_id`; **sem estado de concluído**; unicidade por dia/horário/título |
 | CRUD de lembretes (5.1.2) | lista (hoje + próximos dias), criação e exclusão, tudo filtrado por usuário, sem nenhuma ação de "marcar como feito" |
 | `GoogleCalendarSyncService` (5.1.3) | leitura opcional via OAuth2 refresh token (Calendar API v3, só `urllib`), `todays_events()` e `sync_today()` com espelho em `DailyReminder`; sem credencial degrada para lista vazia |
-| `.gitignore` + `.env.example` | excluem `venv/`, `__pycache__/`, `db.sqlite3`, `.env` e `node_modules/`; CSS compilado é versionado |
+| Testes automatizados (6.2.1 a 6.2.3) | **124 testes** em `tests.py` de 9 apps: usuários/perfis (53), transações (28), eventos e investimentos (23), contas/categorias/lembretes (20). Rode com `APP_ENV=dev python manage.py test` |
+| Qualidade de código (6.1.1) | `black` (linha 79, aspas simples preservadas) + `flake8` com **0 avisos**; configs em `setup.cfg` e `pyproject.toml`; 6 models que estavam sem registro ganharam admin |
+| pt-BR na interface (6.1.2) | 38 templates revisados; `locale/pt_BR/` traduz o rótulo vazio dos selects (`- Selecione uma opção -`), único texto em inglês que sobrava |
+| Docker (6.3.1 / 6.3.2) | `Dockerfile` (`python:3.12-slim`, não-root, healthcheck) + `docker-compose.yml` (`web` + `postgres:16-alpine`, volume `pgdata`, `pg_isready`, migração automática, `WEB_PORT`) |
+| Documentação de execução (6.3.3) | `README.md` com os dois caminhos (SQLite sem Docker e Compose), provados rodando |
+| `.gitignore` + `.env.example` | excluem `venv/`, `__pycache__/`, `db.sqlite3`, `.env`, `staticfiles/` e `node_modules/`; CSS compilado é versionado |
 | Repositório publicado | `main` → https://github.com/marcusvgcruz/tallyora (público) |
 
 ## Não implementado
@@ -55,18 +60,20 @@ Retrato do que existe em disco hoje (24/10/2026), verificado no código e no ban
 - Cripto não tem cotação automática (só renda fixa manual e renda variável pela B3); a classe entra em `skipped` com motivo "cotação manual".
 - O peso por ativo (`target_percentage_in_class`) é guardado e exibido, mas ainda não compara com o real — o badge é por classe, não por ativo.
 - Sem recuperação de senha, onboarding em `/profile/setup/` e verificação de e-mail.
-- Sem Docker e sem suíte de testes automatizados (as verificações são scripts de smoke com rollback, não `tests.py`).
 - Sem paginação ou busca nas listagens.
+- **O container roda `runserver`**, não um servidor de produção: `gunicorn` não está nas dependências e entrar com ele é decisão de deploy (o `STATIC_ROOT` já existe para o `collectstatic`).
+- `docker compose` usa a porta 8080 do host por padrão; na VPS ela é do `evolution_api`, então lá é `WEB_PORT=8081 docker compose up -d`.
+- **Duas regras de negócio ficaram registradas como frágeis** (comportamento real, sem correção porque não estavam no backlog): fatura consolidada é autoritativa mesmo quando menor que a soma dos itens (subestima a dívida se o valor for digitado errado) e `PayrollDeduction.amount` aceita valor negativo no banco (só o form barra).
 
-## Próximos passos (Sprint 6)
+## Próximos passos (fora do backlog atual)
 
-| Bloco | O que entrega |
+| Tema | O que falta |
 | :--- | :--- |
-| 6.1.x | Suíte de testes automatizados (`tests.py` por app), substituindo os scripts de smoke |
-| 6.2.x | PEP8 (linhas ≤ 79), revisão de imports e limpeza |
-| 6.3.x | Docker + `docker-compose` e fechamento da documentação |
-
-Pendências que a Sprint 6 não cobre: disparo do `sync_today()` (cron ou botão), paginação nas listagens e cotação de cripto.
+| Disparo da agenda | botão ou cron chamando `GoogleCalendarSyncService.sync_today()` |
+| Cotações | cripto (CoinGecko responde sem chave) e comparação do peso por **ativo**, não só por classe |
+| Deploy real | `gunicorn`/`uvicorn` + `collectstatic` servido por nginx, HTTPS e backup do Postgres |
+| Conta | recuperação de senha, verificação de e-mail e onboarding |
+| Listagens | paginação e busca onde a lista crescer |
 
 ## Divergências entre o que está definido e o que está no disco
 
@@ -83,10 +90,15 @@ Pendências que a Sprint 6 não cobre: disparo do `sync_today()` (cron ou botão
 | Despesa fixa e quinzenas | TASKS só define `billing_cycle` | além do ciclo, o `due_day` decide a quinzena — sem isso a despesa `MONTHLY` desaparecia das visões de quinzena (ver `docs/05`, §1.1) |
 | Fonte das cotações (4.2.4) | brapi.dev (ou yfinance) | **API oficial da B3** como primária, porque brapi exige token (401 sem ele) e o Yahoo devolve 429 para o IP da VPS; brapi (com `BRAPI_TOKEN`) e Yahoo ficam como fallback |
 | Metas por classe | "a soma deve validar exatamente 100%" | bloqueio quando **passa** de 100% e aviso na tela com quanto falta — exigir 100% a cada linha impediria cadastrar uma classe por vez |
+| Nomes de properties (6.2.3) | `invested_value` / `profit_loss` | no código são `total_invested` / `profit_loss_amount` (os testes cobrem os nomes reais) |
+| Custo do evento (6.2.3) | "custo do evento" como campo | não existe campo: `total_cost` e `remaining_to_pay` vêm da soma dos fornecedores, então `saved_percentage` usa `custo − pago` como denominador |
+| Pagamento acima do custo (6.2.3) | "pago maior que o custo barrado" | `save()` grava e satura `remaining_amount` em 0; a rejeição só acontece em `full_clean()`/form |
 | Banco | PostgreSQL no PRD | `APP_ENV=dev` usa SQLite e `APP_ENV=prd` usa PostgreSQL, para rodar local sem instalar banco |
 | Caixinhas sequenciais | RF11 não define a ordem | abatimento em sequência alfabética sobre o que sobra, para a soma nunca passar do disponível |
 
 Resolvidas nas Sprints 1 a 3: banco PostgreSQL, idioma/timezone pt-BR, usuário customizado, existência de `templates/`, Tailwind local, perfil/contas/categorias, transações/despesas fixas, caixinhas e motor de cálculo.
+
+Resolvidas nas Sprints 4 a 6: eventos e carteira, dashboard, lembretes, cotações pela B3, testes automatizados, PEP8 e Docker.
 
 ## Riscos ativos já mapeados no PRD
 

@@ -16,12 +16,14 @@ class BankAccountForm(forms.ModelForm):
         required=False,
         min_value=1,
         max_value=31,
-        widget=forms.NumberInput(attrs={
-            'class': INPUT_CLASSES,
-            'min': '1',
-            'max': '31',
-            'placeholder': '5',
-        }),
+        widget=forms.NumberInput(
+            attrs={
+                'class': INPUT_CLASSES,
+                'min': '1',
+                'max': '31',
+                'placeholder': '5',
+            }
+        ),
         error_messages={
             'min_value': DAY_ERROR,
             'max_value': DAY_ERROR,
@@ -33,12 +35,14 @@ class BankAccountForm(forms.ModelForm):
         required=False,
         min_value=1,
         max_value=31,
-        widget=forms.NumberInput(attrs={
-            'class': INPUT_CLASSES,
-            'min': '1',
-            'max': '31',
-            'placeholder': '12',
-        }),
+        widget=forms.NumberInput(
+            attrs={
+                'class': INPUT_CLASSES,
+                'min': '1',
+                'max': '31',
+                'placeholder': '12',
+            }
+        ),
         error_messages={
             'min_value': DAY_ERROR,
             'max_value': DAY_ERROR,
@@ -61,21 +65,27 @@ class BankAccountForm(forms.ModelForm):
             'has_credit_card': 'Possui cartão de crédito',
         }
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': INPUT_CLASSES,
-                'placeholder': 'Nubank, Itaú, Carteira...',
-            }),
-            'initial_balance': forms.NumberInput(attrs={
-                'class': INPUT_CLASSES,
-                'step': '0.01',
-                'placeholder': '0,00',
-            }),
-            'has_credit_card': forms.CheckboxInput(attrs={
-                'class': (
-                    'w-4 h-4 rounded border-slate-700 bg-slate-900 '
-                    'text-emerald-500 focus:ring-emerald-500/50'
-                ),
-            }),
+            'name': forms.TextInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'placeholder': 'Nubank, Itaú, Carteira...',
+                }
+            ),
+            'initial_balance': forms.NumberInput(
+                attrs={
+                    'class': INPUT_CLASSES,
+                    'step': '0.01',
+                    'placeholder': '0,00',
+                }
+            ),
+            'has_credit_card': forms.CheckboxInput(
+                attrs={
+                    'class': (
+                        'w-4 h-4 rounded border-slate-700 bg-slate-900 '
+                        'text-emerald-500 focus:ring-emerald-500/50'
+                    ),
+                }
+            ),
         }
 
     def clean(self):
